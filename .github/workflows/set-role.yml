@@ -1,0 +1,44 @@
+name: Set user role
+
+on:
+  workflow_dispatch:
+    inputs:
+      email:
+        description: "Email the user signed up with in the app"
+        required: true
+      role:
+        type: choice
+        options: [admin, moderator, recruiter, user]
+        default: admin
+      company:
+        description: "Recruiters only: company name"
+        required: false
+
+jobs:
+  set-role:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install firebase-admin==6.2.0
+      - name: Grant role
+        env:
+          FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_CREDENTIALS }}
+          EMAIL: ${{ inputs.email }}
+          ROLE: ${{ inputs.role }}
+          COMPANY: ${{ inputs.company }}
+        run: |
+          if [ -z "$FIREBASE_CREDENTIALS" ]; then
+            echo "::error::Add the service-account JSON as the FIREBASE_CREDENTIALS repository secret."
+            exit 1
+          fi
+          printf '%s' "$FIREBASE_CREDENTIALS" > "$RUNNER_TEMP/firebase-credentials.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/firebase-credentials.json"
+          if [ -n "$COMPANY" ]; then
+            python tools/set_role.py "$EMAIL" "$ROLE" "$COMPANY"
+          else
+            python tools/set_role.py "$EMAIL" "$ROLE"
+          fi
