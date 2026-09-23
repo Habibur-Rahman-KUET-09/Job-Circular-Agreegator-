@@ -674,4 +674,33 @@ class Strings {
   String appliedOn(String date) => _t('আবেদন করা হয়েছে: $date', 'Applied: $date');
   String get interviewScheduled => _t('সাক্ষাৎকার নির্ধারিত', 'Interview Scheduled');
   String get updateStatus => _t('স্থিতি আপডেট করুন', 'Update Status');
+
+  // ---- Notification Strings ----
+  String get notifications => _t('বিজ্ঞপ্তি', 'Notifications');
+  String get notificationSettings => _t('বিজ্ঞপ্তি সেটিংস', 'Notification Settings');
+  String get noNotifications => _t('কোনো বিজ্ঞপ্তি নেই', 'No notifications');
+  String get markAllAsRead => _t('সবকিছু পড়া হিসেবে চিহ্নিত করুন', 'Mark all as read');
+  String get clearAll => _t('সব মুছে ফেলুন', 'Clear all');
+  String get clearNotifications => _t('বিজ্ঞপ্তি মুছে ফেলুন', 'Clear Notifications');
+  String get clearNotificationsConfirm => _t('আপনি কি নিশ্চিত যে আপনি সমস্ত বিজ্ঞপ্তি মুছে ফেলতে চান?', 'Are you sure you want to clear all notifications?');
+  String get enableNotifications => _t('বিজ্ঞপ্তি সক্ষম করুন', 'Enable Notifications');
+  String get notificationDesc => _t('চাকরি, আবেদন এবং সময়সীমা সম্পর্কে আপডেট পান', 'Get updates about jobs, applications, and deadlines');
+  String get notificationType => _t('বিজ্ঞপ্তি ধরন', 'Notification Type');
+  String get jobDeadlineReminders => _t('চাকরির সময়সীমা অনুস্মারক', 'Job Deadline Reminders');
+  String get jobDeadlineRemindersDesc => _t('আসন্ন আবেদনের সময়সীমা সম্পর্কে অবহিত থাকুন', 'Stay informed about upcoming application deadlines');
+  String get applicationUpdates => _t('আবেদন আপডেট', 'Application Updates');
+  String get applicationUpdatesDesc => _t('আপনার আবেদনের অগ্রগতি সম্পর্কে অবহিত থাকুন', 'Get notified about your application progress');
+  String get jobMatches => _t('চাকরি ম্যাচ', 'Job Matches');
+  String get jobMatchesDesc => _t('আপনার দক্ষতার সাথে নতুন চাকরি পান', 'Get new jobs that match your skills');
+  String get dailyDigest => _t('দৈনিক সংক্ষিপ্তসার', 'Daily Digest');
+  String get dailyDigestDesc => _t('প্রতিদিন একটি বিজ্ঞপ্তিতে সমস্ত আপডেট পান', 'Get all updates in one notification daily');
+  String get notificationTiming => _t('বিজ্ঞপ্তি সময়', 'Notification Timing');
+  String get quietHours => _t('নিরব সময়', 'Quiet Hours');
+  String get from => _t('থেকে', 'From');
+  String get to => _t('পর্যন্ত', 'To');
+  String get startTime => _t('শুরুর সময়', 'Start Time');
+  String get endTime => _t('শেষ সময়', 'End Time');
+  String get notificationsDisabled => _t('বিজ্ঞপ্তি নিষ্ক্রিয় করা হয়েছে। সেগুলি সক্ষম করতে উপরে টগল করুন।', 'Notifications are disabled. Toggle above to enable them.');
+  String get tip => _t('টিপ', 'Tip');
+  String get notificationTip => _t('নিরব সময়ের বাইরে গুরুত্বপূর্ণ বিজ্ঞপ্তি সর্বদা প্রদর্শিত হয়।', 'Important notifications are always shown outside quiet hours.');
 }

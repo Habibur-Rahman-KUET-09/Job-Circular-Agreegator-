@@ -8,8 +8,10 @@ import 'firebase_options.dart';
 import 'l10n/locale_provider.dart';
 import 'l10n/strings.dart';
 import 'providers/index.dart';
+import 'providers/notification_provider.dart';
 import 'screens/auth/auth_gate.dart';
 import 'services/index.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,6 +34,9 @@ class JobCircularApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider.value(value: localeProvider),
         ChangeNotifierProvider(create: (_) => JobProvider(JobService(firestore))),
+        ChangeNotifierProvider(
+          create: (_) => NotificationProvider(NotificationService()),
+        ),
       ],
       child: Consumer<LocaleProvider>(
         builder: (context, locale, _) => MaterialApp(
