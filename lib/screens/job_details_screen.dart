@@ -72,12 +72,12 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                 spacing: 8,
                 children: [
                   Chip(
-                    label: Text(widget.job.category.name),
+                    label: Text(s.categoryLabel(widget.job.category)),
                     avatar: const Icon(Icons.work, size: 18),
                   ),
                   if (widget.job.jobType != null)
                     Chip(
-                      label: Text(widget.job.jobType!.name),
+                      label: Text(s.jobTypeLabel(widget.job.jobType!)),
                     ),
                   Chip(
                     label: Text(widget.job.location),

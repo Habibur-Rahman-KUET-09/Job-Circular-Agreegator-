@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
+import '../models/application.dart';
+import '../models/job.dart';
 import 'locale_provider.dart';
 
 /// Every user-facing string in the app, in Bangla and English. Screens read
@@ -166,4 +168,58 @@ class Strings {
   String get jobApproved => _t('চাকরি অনুমোদিত হয়েছে', 'Job approved');
   String get jobRejected => _t('চাকরি বাতিল করা হয়েছে', 'Job rejected');
   String sourceLabel(String source) => _t('উৎস: $source', 'Source: $source');
+
+  // ---- Enum labels ----
+  String categoryLabel(JobCategory category) => switch (category) {
+        JobCategory.govt => _t('সরকারি', 'Government'),
+        JobCategory.bank => _t('ব্যাংক', 'Bank'),
+        JobCategory.ngo => _t('এনজিও', 'NGO'),
+        JobCategory.it => _t('আইটি', 'IT'),
+        JobCategory.private => _t('বেসরকারি', 'Private'),
+        JobCategory.finance => _t('অর্থ ও হিসাব', 'Finance'),
+        JobCategory.healthcare => _t('স্বাস্থ্যসেবা', 'Healthcare'),
+        JobCategory.education => _t('শিক্ষা', 'Education'),
+        JobCategory.sales => _t('বিক্রয়', 'Sales'),
+        JobCategory.marketing => _t('মার্কেটিং', 'Marketing'),
+        JobCategory.operations => _t('অপারেশনস', 'Operations'),
+        JobCategory.hr => _t('মানবসম্পদ', 'HR'),
+        JobCategory.other => _t('অন্যান্য', 'Other'),
+      };
+
+  String jobTypeLabel(JobType type) => switch (type) {
+        JobType.fullTime => _t('পূর্ণকালীন', 'Full-time'),
+        JobType.partTime => _t('খণ্ডকালীন', 'Part-time'),
+        JobType.contract => _t('চুক্তিভিত্তিক', 'Contract'),
+        JobType.temporary => _t('অস্থায়ী', 'Temporary'),
+        JobType.internship => _t('ইন্টার্নশিপ', 'Internship'),
+        JobType.freelance => _t('ফ্রিল্যান্স', 'Freelance'),
+      };
+
+  String applicationStatusLabel(ApplicationStatus status) => switch (status) {
+        ApplicationStatus.draft => _t('খসড়া', 'Draft'),
+        ApplicationStatus.submitted => _t('আবেদন করা হয়েছে', 'Applied'),
+        ApplicationStatus.viewed => _t('দেখা হয়েছে', 'Viewed'),
+        ApplicationStatus.shortlisted => _t('সংক্ষিপ্ত তালিকায়', 'Shortlisted'),
+        ApplicationStatus.interviewScheduled => _t('সাক্ষাৎকার নির্ধারিত', 'Interview scheduled'),
+        ApplicationStatus.interviewed => _t('সাক্ষাৎকার হয়েছে', 'Interviewed'),
+        ApplicationStatus.selected => _t('নির্বাচিত', 'Selected'),
+        ApplicationStatus.rejected => _t('প্রত্যাখ্যাত', 'Rejected'),
+        ApplicationStatus.withdrawn => _t('প্রত্যাহার করা হয়েছে', 'Withdrawn'),
+        ApplicationStatus.onHold => _t('স্থগিত', 'On hold'),
+      };
+
+  String get allApplications => _t('সব', 'All');
+  String interviewAt(String date, String? time) =>
+      time == null || time.isEmpty ? date : _t('$date, $time', '$date at $time');
+
+  // ---- Relative time ----
+  String get justNow => _t('এইমাত্র', 'Just now');
+  String minutesAgo(int n) => _t('$n মিনিট আগে', '${n}m ago');
+  String hoursAgo(int n) => _t('$n ঘণ্টা আগে', '${n}h ago');
+  String daysAgo(int n) => _t('$n দিন আগে', '${n}d ago');
+
+  // ---- Quiet hours dialog ----
+  String get quietHoursStartTitle => _t('নিরব সময় শুরু', 'Quiet hours start');
+  String get quietHoursEndTitle => _t('নিরব সময় শেষ', 'Quiet hours end');
+  String get done => _t('সম্পন্ন', 'Done');
 }

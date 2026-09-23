@@ -303,8 +303,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   void _selectStartTime() {
     showDialog(
       context: context,
-      builder: (context) => const TimePickerDialog(
-        title: 'Select Quiet Hours Start Time',
+      builder: (context) => TimePickerDialog(
+        title: Strings.of(context).quietHoursStartTitle,
       ),
     );
   }
@@ -312,8 +312,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   void _selectEndTime() {
     showDialog(
       context: context,
-      builder: (context) => const TimePickerDialog(
-        title: 'Select Quiet Hours End Time',
+      builder: (context) => TimePickerDialog(
+        title: Strings.of(context).quietHoursEndTitle,
       ),
     );
   }
@@ -347,11 +347,11 @@ class TimePickerDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(Strings.of(context).cancel),
         ),
         FilledButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Done'),
+          child: Text(Strings.of(context).done),
         ),
       ],
     );

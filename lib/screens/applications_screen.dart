@@ -15,12 +15,17 @@ class ApplicationsScreen extends StatefulWidget {
 class _ApplicationsScreenState extends State<ApplicationsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final List<String> _tabs = ['All', 'Applied', 'Interviewed', 'Selected', 'Rejected'];
+  static const _statusTabs = [
+    ApplicationStatus.submitted,
+    ApplicationStatus.interviewed,
+    ApplicationStatus.selected,
+    ApplicationStatus.rejected,
+  ];
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _tabs.length, vsync: this);
+    _tabController = TabController(length: _statusTabs.length + 1, vsync: this);
     Future.microtask(() {
       context.read<ApplicationProvider>().fetchApplications();
     });
@@ -47,7 +52,10 @@ class _ApplicationsScreenState extends State<ApplicationsScreen>
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
-          tabs: _tabs.map((tab) => Tab(text: tab)).toList(),
+          tabs: [
+            Tab(text: s.allApplications),
+            for (final status in _statusTabs) Tab(text: s.applicationStatusLabel(status)),
+          ],
         ),
       ),
       body: isLoading && applications.isEmpty
@@ -78,10 +86,8 @@ class _ApplicationsScreenState extends State<ApplicationsScreen>
                   controller: _tabController,
                   children: [
                     _buildApplicationsList(s, applications, appProvider),
-                    _buildStatusList(s, applications, 'submitted', appProvider),
-                    _buildStatusList(s, applications, 'interviewed', appProvider),
-                    _buildStatusList(s, applications, 'selected', appProvider),
-                    _buildStatusList(s, applications, 'rejected', appProvider),
+                    for (final status in _statusTabs)
+                      _buildStatusList(s, applications, status, appProvider),
                   ],
                 ),
     );
@@ -127,11 +133,11 @@ class _ApplicationsScreenState extends State<ApplicationsScreen>
   Widget _buildStatusList(
     Strings s,
     List<Application> applications,
-    String status,
+    ApplicationStatus status,
     ApplicationProvider provider,
   ) {
     final filtered = applications
-        .where((app) => app.status.name == status)
+        .where((app) => app.status == status)
         .toList();
 
     if (filtered.isEmpty) {
@@ -202,7 +208,7 @@ class ApplicationCard extends StatelessWidget {
                 ),
                 Chip(
                   label: Text(
-                    application.status.name.toUpperCase(),
+                    s.applicationStatusLabel(application.status),
                     style: const TextStyle(fontSize: 10),
                   ),
                   backgroundColor: statusColor,
@@ -244,7 +250,7 @@ class ApplicationCard extends StatelessWidget {
                                 ),
                           ),
                           Text(
-                            '${_formatDate(application.interviewDate!)} at ${application.interviewTime}',
+                            s.interviewAt(_formatDate(application.interviewDate!), application.interviewTime),
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
@@ -285,41 +291,22 @@ class ApplicationCard extends StatelessWidget {
   }
 
   void _showStatusMenu(BuildContext context) {
+    final s = Strings.read(context);
     showModalBottomSheet(
       context: context,
-      builder: (context) => Container(
+      builder: (sheetContext) => Container(
         padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(
-              title: const Text('Applied'),
-              onTap: () {
-                onStatusChange(ApplicationStatus.submitted);
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: const Text('Interviewed'),
-              onTap: () {
-                onStatusChange(ApplicationStatus.interviewed);
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: const Text('Selected'),
-              onTap: () {
-                onStatusChange(ApplicationStatus.selected);
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: const Text('Rejected'),
-              onTap: () {
-                onStatusChange(ApplicationStatus.rejected);
-                Navigator.pop(context);
-              },
-            ),
+            for (final status in _ApplicationsScreenState._statusTabs)
+              ListTile(
+                title: Text(s.applicationStatusLabel(status)),
+                onTap: () {
+                  onStatusChange(status);
+                  Navigator.pop(sheetContext);
+                },
+              ),
           ],
         ),
       ),

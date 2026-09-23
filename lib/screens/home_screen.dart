@@ -337,7 +337,7 @@ class JobCard extends StatelessWidget {
                     ),
                   ),
                   Chip(
-                    label: Text(job.category.name),
+                    label: Text(Strings.of(context).categoryLabel(job.category)),
                   ),
                 ],
               ),
@@ -471,7 +471,7 @@ class _FilterDialogState extends State<FilterDialog> {
               items: JobCategory.values.map((cat) {
                 return DropdownMenuItem(
                   value: cat,
-                  child: Text(cat.name),
+                  child: Text(s.categoryLabel(cat)),
                 );
               }).toList(),
               onChanged: (value) => setState(() => _category = value),

@@ -117,6 +117,7 @@ class NotificationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = Strings.of(context);
     final isRead = notification['read'] as bool? ?? false;
     final timestamp = notification['timestamp'] as DateTime?;
     final type = notification['type'] as String? ?? 'general';
@@ -183,7 +184,7 @@ class NotificationTile extends StatelessWidget {
                     if (timestamp != null) ...[
                       const SizedBox(height: 8),
                       Text(
-                        _formatTime(timestamp),
+                        _formatTime(s, timestamp),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: Colors.grey[600],
                             ),
@@ -225,18 +226,18 @@ class NotificationTile extends StatelessWidget {
     }
   }
 
-  String _formatTime(DateTime dateTime) {
+  String _formatTime(Strings s, DateTime dateTime) {
     final now = DateTime.now();
     final difference = now.difference(dateTime);
 
     if (difference.inMinutes < 1) {
-      return 'Just now';
+      return s.justNow;
     } else if (difference.inHours < 1) {
-      return '${difference.inMinutes}m ago';
+      return s.minutesAgo(difference.inMinutes);
     } else if (difference.inDays < 1) {
-      return '${difference.inHours}h ago';
+      return s.hoursAgo(difference.inHours);
     } else if (difference.inDays < 7) {
-      return '${difference.inDays}d ago';
+      return s.daysAgo(difference.inDays);
     } else {
       return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
     }
