@@ -31,13 +31,11 @@ service cloud.firestore {
                         || request.resource.data.company == request.auth.token.company);
 
       // Update:
-      // - Admin can update any job
-      // - Moderator can update only jobs they posted (for approval workflow)
+      // - Admin and moderator can update any job (moderators approve/reject
+      //   scraped jobs, which nobody "posted")
       // - Recruiter can update only their own company's jobs they posted
       allow update: if request.auth != null
-                    && (request.auth.token.role == 'admin'
-                        || (request.auth.token.role == 'moderator'
-                            && resource.data.postedBy == request.auth.uid)
+                    && (request.auth.token.role in ['admin', 'moderator']
                         || (request.auth.token.role == 'recruiter'
                             && resource.data.company == request.auth.token.company
                             && resource.data.postedBy == request.auth.uid));

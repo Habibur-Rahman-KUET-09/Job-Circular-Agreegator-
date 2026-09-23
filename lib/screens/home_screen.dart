@@ -15,6 +15,7 @@ import '../services/user_profile_service.dart';
 import 'auth/login_screen.dart';
 import 'applications_screen.dart';
 import 'job_details_screen.dart';
+import 'job_review_screen.dart';
 import 'saved_jobs_screen.dart';
 import 'user_profile_screen.dart';
 
@@ -30,11 +31,18 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _selectedLocation;
   String? _searchTerm;
   late String userId;
+  bool _canReviewJobs = false;
 
   @override
   void initState() {
     super.initState();
     userId = AuthService.instance.currentUser?.uid ?? '';
+    AuthService.instance.getCurrentUserRole().then((role) {
+      if (!mounted) return;
+      setState(() {
+        _canReviewJobs = role == UserRole.admin || role == UserRole.moderator;
+      });
+    });
     Future.microtask(() {
       context.read<JobProvider>().fetchAllJobs();
     });
@@ -175,6 +183,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 _navigateToApplications();
               },
             ),
+            if (_canReviewJobs)
+              ListTile(
+                leading: const Icon(Icons.fact_check),
+                title: Text(Strings.of(context).reviewJobs),
+                onTap: () {
+                  Navigator.pop(context);
+                  _navigateToJobReview();
+                },
+              ),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.logout),
@@ -188,6 +205,14 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _navigateToJobReview() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const JobReviewScreen()),
+    );
+    if (!mounted) return;
+    context.read<JobProvider>().fetchAllJobs();
   }
 
   void _navigateToProfile() {

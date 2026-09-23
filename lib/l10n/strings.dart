@@ -16,6 +16,11 @@ class Strings {
     return Strings(language);
   }
 
+  /// For event handlers and async callbacks, where [of]'s watch isn't allowed.
+  static Strings read(BuildContext context) {
+    return Strings(context.read<LocaleProvider>().language);
+  }
+
   bool get _bn => lang == AppLanguage.bn;
   String _t(String bn, String en) => _bn ? bn : en;
 
@@ -152,4 +157,13 @@ class Strings {
   String get notificationsDisabled => _t('বিজ্ঞপ্তি নিষ্ক্রিয় করা হয়েছে। সেগুলি সক্ষম করতে উপরে টগল করুন।', 'Notifications are disabled. Toggle above to enable them.');
   String get tip => _t('টিপ', 'Tip');
   String get notificationTip => _t('নিরব সময়ের বাইরে গুরুত্বপূর্ণ বিজ্ঞপ্তি সর্বদা প্রদর্শিত হয়।', 'Important notifications are always shown outside quiet hours.');
+
+  // ---- Job review (admin/moderator) ----
+  String get reviewJobs => _t('চাকরি যাচাই', 'Review jobs');
+  String get noPendingJobs => _t('যাচাইয়ের জন্য কোনো চাকরি নেই', 'No jobs waiting for review');
+  String get approve => _t('অনুমোদন', 'Approve');
+  String get reject => _t('প্রত্যাখ্যান', 'Reject');
+  String get jobApproved => _t('চাকরি অনুমোদিত হয়েছে', 'Job approved');
+  String get jobRejected => _t('চাকরি বাতিল করা হয়েছে', 'Job rejected');
+  String sourceLabel(String source) => _t('উৎস: $source', 'Source: $source');
 }

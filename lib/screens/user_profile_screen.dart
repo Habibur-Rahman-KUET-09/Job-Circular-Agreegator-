@@ -241,7 +241,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(Strings.of(context).profileUpdated)),
+        SnackBar(content: Text(Strings.read(context).profileUpdated)),
       );
     }
   }

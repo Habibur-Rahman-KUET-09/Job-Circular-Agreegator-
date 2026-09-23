@@ -18,8 +18,7 @@ class AuthService {
 
   Future<UserRole?> getCurrentUserRole() async {
     try {
-      await _auth.currentUser?.reload();
-      final token = await _auth.currentUser?.getIdTokenResult();
+      final token = await _auth.currentUser?.getIdTokenResult(true);
       final role = token?.claims?['role'] as String?;
       if (role != null) {
         return UserRole.values.firstWhere(

@@ -270,7 +270,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(Strings.of(context).couldNotLaunchUrl)),
+          SnackBar(content: Text(Strings.read(context).couldNotLaunchUrl)),
         );
       }
     }

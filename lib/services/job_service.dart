@@ -214,6 +214,29 @@ class JobService {
             })).toList());
   }
 
+  // Newest first; a document that fails to parse is skipped so one malformed
+  // scraped job can't block the whole review queue.
+  Stream<List<Job>> watchPendingJobs() {
+    return _jobsCollection
+        .where('status', isEqualTo: JobStatus.pending.name)
+        .orderBy('postedDate', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) {
+              try {
+                return Job.fromJson({'id': doc.id, ...doc.data()});
+              } catch (_) {
+                return null;
+              }
+            })
+            .whereType<Job>()
+            .toList());
+  }
+
+  Future<void> setJobStatus(String jobId, JobStatus status) {
+    return _jobsCollection.doc(jobId).update({'status': status.name});
+  }
+
   // Watch specific job in real-time
   Stream<Job?> watchJobById(String jobId) {
     return _jobsCollection.doc(jobId).snapshots().map((snapshot) {
