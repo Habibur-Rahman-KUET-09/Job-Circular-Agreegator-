@@ -38,6 +38,7 @@ class BaseScraper(ABC):
         min_years: Optional[int] = None,
         max_years: Optional[int] = None,
         apply_link: Optional[str] = None,
+        posted_date: Optional[datetime] = None,
     ) -> Dict:
         """Create a standardized job dictionary."""
         return {
@@ -49,7 +50,7 @@ class BaseScraper(ABC):
             "description": description.strip(),
             "source": self.source_name,
             "sourceType": "scraped",
-            "postedDate": datetime.now().isoformat(),
+            "postedDate": (posted_date or datetime.now()).isoformat(),
             "deadline": deadline.isoformat() if deadline else None,
             "jobType": self._map_job_type(job_type),
             "salaryMin": salary_min,
@@ -83,6 +84,29 @@ class BaseScraper(ABC):
             "freelance": "freelance",
         }
         return job_type_mapping.get(normalized)
+
+    # Checked in order, so "bank" wins over the broader "finance" keywords.
+    _CATEGORY_KEYWORDS = [
+        ("bank", ["bank", "banking"]),
+        ("ngo", ["ngo", "foundation", "development organization", "unicef", "brac"]),
+        ("govt", ["government", "ministry", "directorate", "bangladesh railway", "public service"]),
+        ("it", ["software", "developer", "programmer", "it ", "i.t.", "network", "devops", "web ", "app "]),
+        ("finance", ["account", "finance", "audit", "tax", "vat"]),
+        ("healthcare", ["doctor", "nurse", "medical", "pharma", "hospital", "clinic", "dental", "health"]),
+        ("education", ["teacher", "lecturer", "school", "university", "college", "tutor"]),
+        ("hr", ["human resource", "hr ", "recruit", "talent"]),
+        ("marketing", ["marketing", "brand", "digital marketing"]),
+        ("sales", ["sales", "business development", "showroom"]),
+        ("operations", ["operation", "supply chain", "logistics", "procurement", "production"]),
+    ]
+
+    def _guess_category(self, text: str) -> str:
+        """Best-effort category from free text such as the title and company."""
+        lowered = f" {text.lower()} "
+        for category, keywords in self._CATEGORY_KEYWORDS:
+            if any(keyword in lowered for keyword in keywords):
+                return category
+        return "other"
 
     def _map_category(self, raw_category: str) -> str:
         """Map raw category from source to standard categories."""

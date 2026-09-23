@@ -20,18 +20,13 @@ import requests
 from bs4 import BeautifulSoup
 
 from bdjobs_scraper import BDJobsScraper
-from chakri_scraper import ChakriScraper
 
-INSPECT_URLS = [
-    BDJobsScraper.BASE_URL + BDJobsScraper.SEARCH_ENDPOINT,
-    "https://jobs.bdjobs.com/jobsearch.asp",
-    ChakriScraper.BASE_URL + ChakriScraper.SEARCH_ENDPOINT,
-]
+INSPECT_URLS = [BDJobsScraper.LIST_URL]
 
 
 def scrape_all() -> Dict[str, List[Dict]]:
     results = {}
-    for scraper in (BDJobsScraper(), ChakriScraper()):
+    for scraper in (BDJobsScraper(),):
         jobs = scraper.scrape()
         print(f"[{scraper.source_name}] {len(jobs)} jobs, {len(scraper.errors)} errors")
         for error in scraper.errors[:5]:
@@ -147,8 +142,16 @@ def main() -> int:
     if args.mode == "dry-run":
         for source, jobs in results.items():
             for job in jobs[:3]:
-                print(json.dumps({k: job[k] for k in ("title", "company", "location", "deadline", "jobType", "applyLink")},
+                print(json.dumps({k: job[k] for k in ("title", "company", "location", "category", "deadline",
+                                                      "jobType", "minYearsExperience", "applyLink")},
                                  ensure_ascii=False))
+            if jobs:
+                link = jobs[0]["applyLink"]
+                try:
+                    r = requests.get(link, timeout=30, headers={"User-Agent": "Mozilla/5.0"})
+                    print(f"apply link check: {link} -> {r.status_code} {r.url}")
+                except requests.RequestException as e:
+                    print(f"apply link check failed: {e}")
     else:
         from firestore_ingestion import FirestoreIngestion
 
