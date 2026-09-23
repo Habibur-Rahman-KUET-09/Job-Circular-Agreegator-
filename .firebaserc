@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "job-circular-aggregator"
+  },
+  "targets": {
+    "job-circular-aggregator": {
+      "hosting": {
+        "default": [
+          "job-circular-aggregator"
+        ]
+      }
+    }
+  }
+}
