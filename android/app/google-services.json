@@ -1,44 +1,26 @@
 {
   "project_info": {
-    "project_number": "626419471655",
-    "project_id": "baitulmal-tracking-system",
-    "storage_bucket": "baitulmal-tracking-system.firebasestorage.app"
+    "project_number": "164954399351",
+    "project_id": "shondhan-58fe0",
+    "storage_bucket": "shondhan-58fe0.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:626419471655:android:feb7855e4901d20b398502",
+        "mobilesdk_app_id": "1:164954399351:android:0f6ad632198eb3c8f15c72",
         "android_client_info": {
-          "package_name": "com.baytulmal.collection_tracker"
+          "package_name": "com.jobcircular.aggregator"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "626419471655-tpfln5cg7n9l0ef3mq57a5bq2rk08h6t.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.baytulmal.collection_tracker",
-            "certificate_hash": "8900af7fadd053ff417faa03a5394f6e30341168"
-          }
-        },
-        {
-          "client_id": "626419471655-ctdrq1vblm71teeqvp7nktn1fbr76mg9.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAPNRkzRtlr5TM6n-cEuR-tt1d1RVSX2aI"
+          "current_key": "AIzaSyDhGl1CZGQKwkk1ySYX5YaE-beSDw7pZ4M"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "626419471655-ctdrq1vblm71teeqvp7nktn1fbr76mg9.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }

@@ -30,10 +30,10 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAPNRkzRtlr5TM6n-cEuR-tt1d1RVSX2aI',
-    appId: '1:626419471655:android:feb7855e4901d20b398502',
-    messagingSenderId: '626419471655',
-    projectId: 'baitulmal-tracking-system',
-    storageBucket: 'baitulmal-tracking-system.firebasestorage.app',
+    apiKey: 'AIzaSyDhGl1CZGQKwkk1ySYX5YaE-beSDw7pZ4M',
+    appId: '1:164954399351:android:0f6ad632198eb3c8f15c72',
+    messagingSenderId: '164954399351',
+    projectId: 'shondhan-58fe0',
+    storageBucket: 'shondhan-58fe0.firebasestorage.app',
   );
 }
