@@ -3,6 +3,7 @@
     python run_scrapers.py --mode ingest    # scrape and store new jobs (needs credentials)
     python run_scrapers.py --mode dry-run   # scrape and print, no Firestore
     python run_scrapers.py --mode inspect [URL ...]  # print page structure to fix selectors
+    python run_scrapers.py --mode probe --keyword K URL ...  # show JSON shape / code around K
 
 Exits non-zero when no jobs were scraped at all, so a scheduled run that
 silently breaks (site redesign, blocked request) shows up as a failed run.
@@ -78,14 +79,61 @@ def inspect(urls: List[str]) -> None:
         print(f"api-like urls in page: {endpoints[:15]}")
 
 
+def _shape(value, depth=0):
+    if depth > 3:
+        return "..."
+    if isinstance(value, dict):
+        return {k: _shape(v, depth + 1) for k, v in list(value.items())[:40]}
+    if isinstance(value, list):
+        return [_shape(value[0], depth + 1), f"({len(value)} items)"] if value else []
+    return type(value).__name__
+
+
+def probe(urls: List[str], keyword: str) -> None:
+    session = requests.Session()
+    session.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+    for url in urls:
+        print(f"\n===== {url}")
+        try:
+            response = session.get(url, timeout=30)
+        except requests.RequestException as e:
+            print(f"request failed: {e}")
+            continue
+        print(f"status={response.status_code} final_url={response.url} type={response.headers.get('content-type')}")
+        try:
+            data = response.json()
+        except ValueError:
+            data = None
+        if data is not None:
+            print("json shape:", json.dumps(_shape(data), indent=1)[:4000])
+            print("json sample:", json.dumps(data, ensure_ascii=False)[:3000])
+            continue
+        texts = [(url, response.text)]
+        soup = BeautifulSoup(response.content, "lxml")
+        for script in soup.find_all("script", src=True)[:40]:
+            src = requests.compat.urljoin(response.url, script["src"])
+            try:
+                texts.append((src, session.get(src, timeout=30).text))
+            except requests.RequestException:
+                pass
+        for source, text in texts:
+            for match in list(re.finditer(re.escape(keyword), text))[:3]:
+                start = max(0, match.start() - 1200)
+                print(f"--- {source} @ {match.start()}\n{text[start:match.end() + 1500]}\n")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--mode", choices=["ingest", "dry-run", "inspect"], default="dry-run")
+    parser.add_argument("--mode", choices=["ingest", "dry-run", "inspect", "probe"], default="dry-run")
+    parser.add_argument("--keyword", default="GetJobSearch")
     parser.add_argument("urls", nargs="*")
     args = parser.parse_args()
 
     if args.mode == "inspect":
         inspect(args.urls or INSPECT_URLS)
+        return 0
+    if args.mode == "probe":
+        probe(args.urls, args.keyword)
         return 0
 
     results = scrape_all()

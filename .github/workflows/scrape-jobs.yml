@@ -8,8 +8,14 @@ on:
       mode:
         description: "ingest = save to Firestore, dry-run = print only, inspect = debug page structure"
         type: choice
-        options: [ingest, dry-run, inspect]
+        options: [ingest, dry-run, inspect, probe]
         default: ingest
+      urls:
+        description: "inspect/probe only: space-separated URLs"
+        required: false
+      keyword:
+        description: "probe only: text to find in the page's JavaScript"
+        required: false
 
 jobs:
   scrape:
@@ -33,6 +39,8 @@ jobs:
       - name: Run scrapers
         env:
           MODE: ${{ inputs.mode || 'ingest' }}
+          URLS: ${{ inputs.urls }}
+          KEYWORD: ${{ inputs.keyword || 'GetJobSearch' }}
           FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_CREDENTIALS }}
         run: |
           if [ "$MODE" = "ingest" ]; then
@@ -43,4 +51,5 @@ jobs:
             printf '%s' "$FIREBASE_CREDENTIALS" > "$RUNNER_TEMP/firebase-credentials.json"
             export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/firebase-credentials.json"
           fi
-          python run_scrapers.py --mode "$MODE"
+          # URLS is intentionally unquoted: space-separated list of arguments.
+          python run_scrapers.py --mode "$MODE" --keyword "$KEYWORD" $URLS
