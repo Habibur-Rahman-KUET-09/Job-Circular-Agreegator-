@@ -1,6 +1,8 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 
+if (!admin.apps.length) admin.initializeApp();
+
 // This Cloud Function orchestrates job scrapers and ingest results into Firestore
 // Deploy with: firebase deploy --only functions
 

@@ -37,10 +37,10 @@ service cloud.firestore {
       allow update: if request.auth != null
                     && (request.auth.token.role == 'admin'
                         || (request.auth.token.role == 'moderator'
-                            && resource.data.posted_by == request.auth.uid)
+                            && resource.data.postedBy == request.auth.uid)
                         || (request.auth.token.role == 'recruiter'
                             && resource.data.company == request.auth.token.company
-                            && resource.data.posted_by == request.auth.uid));
+                            && resource.data.postedBy == request.auth.uid));
 
       // Delete: Only admin can delete jobs
       allow delete: if request.auth != null

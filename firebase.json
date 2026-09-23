@@ -6,7 +6,10 @@
   "functions": {
     "source": "functions",
     "codebase": "default",
-    "runtime": "nodejs_18"
+    "runtime": "nodejs_22",
+    "predeploy": [
+      "npm --prefix \"$RESOURCE_DIR\" run build"
+    ]
   },
   "emulators": {
     "firestore": {
