@@ -110,16 +110,21 @@ def probe(urls: List[str], keyword: str) -> None:
             continue
         texts = [(url, response.text)]
         soup = BeautifulSoup(response.content, "lxml")
-        for script in soup.find_all("script", src=True)[:40]:
-            src = requests.compat.urljoin(response.url, script["src"])
+        sources = [tag["src"] for tag in soup.find_all("script", src=True)]
+        sources += [tag["href"] for tag in soup.find_all("link", rel="modulepreload", href=True)]
+        for source_path in sources[:60]:
+            src = requests.compat.urljoin(response.url, source_path)
             try:
                 texts.append((src, session.get(src, timeout=30).text))
             except requests.RequestException:
                 pass
-        for source, text in texts:
-            for match in list(re.finditer(re.escape(keyword), text))[:3]:
-                start = max(0, match.start() - 1200)
-                print(f"--- {source} @ {match.start()}\n{text[start:match.end() + 1500]}\n")
+        for word in keyword.split(","):
+            for source, text in texts:
+                if source == url and len(texts) > 1:
+                    continue
+                for match in list(re.finditer(re.escape(word), text))[:2]:
+                    start = max(0, match.start() - 700)
+                    print(f"--- [{word}] {source} @ {match.start()}\n{text[start:match.end() + 700]}\n")
 
 
 def main() -> int:
