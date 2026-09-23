@@ -1,0 +1,61 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // User profiles collection
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth.uid == userId;
+
+      match /applications/{appId} {
+        allow read: if request.auth.uid == userId;
+        allow write: if request.auth.uid == userId;
+      }
+
+      match /savedJobs/{savedJobId} {
+        allow read: if request.auth.uid == userId;
+        allow write: if request.auth.uid == userId;
+      }
+    }
+
+    // Jobs collection - core of the app
+    match /jobs/{jobId} {
+      // Read: Anyone can view jobs (public feed)
+      allow read: if true;
+
+      // Create: Only admin, moderator, recruiter can create jobs
+      // Recruiters can only create jobs for their own company
+      allow create: if request.auth != null
+                    && request.auth.token.role in ['admin', 'moderator', 'recruiter']
+                    && (request.auth.token.role != 'recruiter'
+                        || request.resource.data.company == request.auth.token.company);
+
+      // Update:
+      // - Admin can update any job
+      // - Moderator can update only jobs they posted (for approval workflow)
+      // - Recruiter can update only their own company's jobs they posted
+      allow update: if request.auth != null
+                    && (request.auth.token.role == 'admin'
+                        || (request.auth.token.role == 'moderator'
+                            && resource.data.posted_by == request.auth.uid)
+                        || (request.auth.token.role == 'recruiter'
+                            && resource.data.company == request.auth.token.company
+                            && resource.data.posted_by == request.auth.uid));
+
+      // Delete: Only admin can delete jobs
+      allow delete: if request.auth != null
+                    && request.auth.token.role == 'admin';
+    }
+
+    // Audit log collection (admin only)
+    match /auditLog/{logId} {
+      allow read: if request.auth != null && request.auth.token.role == 'admin';
+      allow create: if request.auth != null;
+    }
+
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

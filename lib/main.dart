@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -6,8 +7,9 @@ import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'l10n/locale_provider.dart';
 import 'l10n/strings.dart';
-import 'providers/app_data_provider.dart';
+import 'providers/index.dart';
 import 'screens/auth/auth_gate.dart';
+import 'services/index.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,11 +26,15 @@ class JobCircularApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const seedColor = Color(0xFF00695C); // teal — matches the app icon
+    final firestore = FirebaseFirestore.instance;
 
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: localeProvider),
-        ChangeNotifierProvider(create: (_) => AppDataProvider()),
+        ChangeNotifierProvider(create: (_) => JobProvider(JobService(firestore))),
+        ChangeNotifierProvider(create: (_) => ApplicationProvider(ApplicationService(firestore))),
+        ChangeNotifierProvider(create: (_) => UserProfileProvider(UserProfileService(firestore))),
+        ChangeNotifierProvider(create: (_) => SavedJobProvider(SavedJobService(firestore))),
       ],
       child: Consumer<LocaleProvider>(
         builder: (context, locale, _) => MaterialApp(

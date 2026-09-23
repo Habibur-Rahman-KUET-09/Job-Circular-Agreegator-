@@ -10,14 +10,17 @@ class JobService {
   // Collection references
   CollectionReference<Map<String, dynamic>> get _jobsCollection => _firestore.collection('jobs');
 
-  // Fetch all active jobs
+  // Fetch all approved jobs
   Future<List<Job>> getAllJobs() async {
     try {
       final snapshot = await _jobsCollection
-          .where('isActive', isEqualTo: true)
+          .where('status', isEqualTo: 'approved')
           .orderBy('postedDate', descending: true)
           .get();
-      return snapshot.docs.map((doc) => Job.fromJson(doc.data())).toList();
+      return snapshot.docs.map((doc) => Job.fromJson({
+        'id': doc.id,
+        ...doc.data(),
+      })).toList();
     } catch (e) {
       throw Exception('Failed to fetch jobs: $e');
     }
@@ -32,7 +35,7 @@ class JobService {
     List<String>? skills,
   }) async {
     try {
-      Query<Map<String, dynamic>> query = _jobsCollection.where('isActive', isEqualTo: true);
+      Query<Map<String, dynamic>> query = _jobsCollection.where('status', isEqualTo: 'approved');
 
       if (location != null && location.isNotEmpty) {
         query = query.where('location', isEqualTo: location);
@@ -47,7 +50,10 @@ class JobService {
       }
 
       final snapshot = await query.orderBy('postedDate', descending: true).get();
-      var jobs = snapshot.docs.map((doc) => Job.fromJson(doc.data())).toList();
+      var jobs = snapshot.docs.map((doc) => Job.fromJson({
+        'id': doc.id,
+        ...doc.data(),
+      })).toList();
 
       // Client-side filtering for search term and skills
       if (searchTerm != null && searchTerm.isNotEmpty) {
@@ -79,7 +85,10 @@ class JobService {
       final doc = await _jobsCollection.doc(jobId).get();
       if (doc.exists) {
         await _incrementJobViewCount(jobId);
-        return Job.fromJson(doc.data()!);
+        return Job.fromJson({
+          'id': doc.id,
+          ...doc.data()!,
+        });
       }
       return null;
     } catch (e) {
@@ -87,15 +96,18 @@ class JobService {
     }
   }
 
-  // Get jobs from a specific platform
+  // Get jobs from a specific source
   Future<List<Job>> getJobsByPlatform(String platform) async {
     try {
       final snapshot = await _jobsCollection
-          .where('platform', isEqualTo: platform)
-          .where('isActive', isEqualTo: true)
+          .where('source', isEqualTo: platform)
+          .where('status', isEqualTo: 'approved')
           .orderBy('postedDate', descending: true)
           .get();
-      return snapshot.docs.map((doc) => Job.fromJson(doc.data())).toList();
+      return snapshot.docs.map((doc) => Job.fromJson({
+        'id': doc.id,
+        ...doc.data(),
+      })).toList();
     } catch (e) {
       throw Exception('Failed to fetch jobs from $platform: $e');
     }
@@ -106,10 +118,13 @@ class JobService {
     try {
       final snapshot = await _jobsCollection
           .where('category', isEqualTo: category)
-          .where('isActive', isEqualTo: true)
+          .where('status', isEqualTo: 'approved')
           .orderBy('postedDate', descending: true)
           .get();
-      return snapshot.docs.map((doc) => Job.fromJson(doc.data())).toList();
+      return snapshot.docs.map((doc) => Job.fromJson({
+        'id': doc.id,
+        ...doc.data(),
+      })).toList();
     } catch (e) {
       throw Exception('Failed to fetch jobs in category: $e');
     }
@@ -122,10 +137,13 @@ class JobService {
       final snapshot = await _jobsCollection
           .where('deadline', isLessThanOrEqualTo: future.toIso8601String())
           .where('deadline', isGreaterThanOrEqualTo: DateTime.now().toIso8601String())
-          .where('isActive', isEqualTo: true)
+          .where('status', isEqualTo: 'approved')
           .orderBy('deadline', descending: false)
           .get();
-      return snapshot.docs.map((doc) => Job.fromJson(doc.data())).toList();
+      return snapshot.docs.map((doc) => Job.fromJson({
+        'id': doc.id,
+        ...doc.data(),
+      })).toList();
     } catch (e) {
       throw Exception('Failed to fetch expiring jobs: $e');
     }
@@ -162,10 +180,10 @@ class JobService {
     }
   }
 
-  // Deactivate job (mark as no longer active)
+  // Deactivate job (mark as rejected)
   Future<void> deactivateJob(String jobId) async {
     try {
-      await _jobsCollection.doc(jobId).update({'isActive': false});
+      await _jobsCollection.doc(jobId).update({'status': 'rejected'});
     } catch (e) {
       throw Exception('Failed to deactivate job: $e');
     }
@@ -187,18 +205,24 @@ class JobService {
   // Watch jobs in real-time
   Stream<List<Job>> watchJobs() {
     return _jobsCollection
-        .where('isActive', isEqualTo: true)
+        .where('status', isEqualTo: 'approved')
         .orderBy('postedDate', descending: true)
         .snapshots()
         .map((snapshot) =>
-            snapshot.docs.map((doc) => Job.fromJson(doc.data())).toList());
+            snapshot.docs.map((doc) => Job.fromJson({
+              'id': doc.id,
+              ...doc.data(),
+            })).toList());
   }
 
   // Watch specific job in real-time
   Stream<Job?> watchJobById(String jobId) {
     return _jobsCollection.doc(jobId).snapshots().map((snapshot) {
       if (snapshot.exists) {
-        return Job.fromJson(snapshot.data()!);
+        return Job.fromJson({
+          'id': snapshot.id,
+          ...snapshot.data()!,
+        });
       }
       return null;
     });

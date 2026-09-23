@@ -3,7 +3,11 @@ import 'package:uuid/uuid.dart';
 enum JobType { fullTime, partTime, contract, temporary, internship, freelance }
 
 enum JobCategory {
+  govt,
+  bank,
+  ngo,
   it,
+  private,
   finance,
   healthcare,
   education,
@@ -11,11 +15,12 @@ enum JobCategory {
   marketing,
   operations,
   hr,
-  construction,
-  manufacturing,
-  service,
   other
 }
+
+enum JobSourceType { scraped, manual }
+
+enum JobStatus { pending, approved, rejected }
 
 class Job {
   final String id;
@@ -23,22 +28,32 @@ class Job {
   final String company;
   final String description;
   final String location;
-  final JobType jobType;
   final JobCategory category;
-  final List<String> requiredSkills;
+  final JobType? jobType;
+  final List<String>? requiredSkills;
   final int? minYearsExperience;
   final int? maxYearsExperience;
   final String? salaryMin;
   final String? salaryMax;
-  final String? salaryCurrency;
-  final String source; // URL to original job posting
-  final String platform; // e.g., 'linkedin', 'bdjobs', 'govt', etc.
+
+  // Source info
+  final String source; // 'bdjobs', 'chakri.com', 'newspaper:prothomalo', 'manual'
+  final JobSourceType sourceType;
+  final String? applyLink; // Direct link to apply/original post
+
+  // Temporal info
   final DateTime postedDate;
   final DateTime? deadline;
+  final DateTime? scrapedAt; // When app collected it (scraped only)
+
+  // Admin/moderation
+  final String? postedBy; // Firebase Auth UID (manual only)
+  final JobStatus status; // pending/approved/rejected
+
+  // Metadata
   final DateTime createdAt;
   final int viewCount;
   final int applicationCount;
-  final bool isActive;
 
   const Job({
     required this.id,
@@ -46,22 +61,24 @@ class Job {
     required this.company,
     required this.description,
     required this.location,
-    required this.jobType,
     required this.category,
-    required this.requiredSkills,
+    required this.source,
+    required this.sourceType,
+    required this.postedDate,
+    required this.status,
+    required this.createdAt,
+    this.jobType,
+    this.requiredSkills,
     this.minYearsExperience,
     this.maxYearsExperience,
     this.salaryMin,
     this.salaryMax,
-    this.salaryCurrency = 'BDT',
-    required this.source,
-    required this.platform,
-    required this.postedDate,
+    this.applyLink,
     this.deadline,
-    required this.createdAt,
+    this.scrapedAt,
+    this.postedBy,
     this.viewCount = 0,
     this.applicationCount = 0,
-    this.isActive = true,
   });
 
   factory Job.fromJson(Map<String, dynamic> json) {
@@ -71,22 +88,26 @@ class Job {
       company: json['company'] as String,
       description: json['description'] as String,
       location: json['location'] as String,
-      jobType: JobType.values.byName(json['jobType'] as String),
       category: JobCategory.values.byName(json['category'] as String),
-      requiredSkills: List<String>.from(json['requiredSkills'] as List),
+      source: json['source'] as String,
+      sourceType: JobSourceType.values.byName(json['sourceType'] as String),
+      postedDate: DateTime.parse(json['postedDate'] as String),
+      status: JobStatus.values.byName(json['status'] as String? ?? 'approved'),
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      jobType: json['jobType'] != null ? JobType.values.byName(json['jobType'] as String) : null,
+      requiredSkills: json['requiredSkills'] != null
+          ? List<String>.from(json['requiredSkills'] as List)
+          : null,
       minYearsExperience: json['minYearsExperience'] as int?,
       maxYearsExperience: json['maxYearsExperience'] as int?,
       salaryMin: json['salaryMin'] as String?,
       salaryMax: json['salaryMax'] as String?,
-      salaryCurrency: json['salaryCurrency'] as String? ?? 'BDT',
-      source: json['source'] as String,
-      platform: json['platform'] as String,
-      postedDate: DateTime.parse(json['postedDate'] as String),
+      applyLink: json['applyLink'] as String?,
       deadline: json['deadline'] != null ? DateTime.parse(json['deadline'] as String) : null,
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      scrapedAt: json['scrapedAt'] != null ? DateTime.parse(json['scrapedAt'] as String) : null,
+      postedBy: json['postedBy'] as String?,
       viewCount: json['viewCount'] as int? ?? 0,
       applicationCount: json['applicationCount'] as int? ?? 0,
-      isActive: json['isActive'] as bool? ?? true,
     );
   }
 
@@ -96,22 +117,24 @@ class Job {
     'company': company,
     'description': description,
     'location': location,
-    'jobType': jobType.name,
     'category': category.name,
-    'requiredSkills': requiredSkills,
+    'source': source,
+    'sourceType': sourceType.name,
+    'postedDate': postedDate.toIso8601String(),
+    'status': status.name,
+    'createdAt': createdAt.toIso8601String(),
+    if (jobType != null) 'jobType': jobType!.name,
+    if (requiredSkills != null) 'requiredSkills': requiredSkills,
     'minYearsExperience': minYearsExperience,
     'maxYearsExperience': maxYearsExperience,
     'salaryMin': salaryMin,
     'salaryMax': salaryMax,
-    'salaryCurrency': salaryCurrency,
-    'source': source,
-    'platform': platform,
-    'postedDate': postedDate.toIso8601String(),
+    'applyLink': applyLink,
     'deadline': deadline?.toIso8601String(),
-    'createdAt': createdAt.toIso8601String(),
+    'scrapedAt': scrapedAt?.toIso8601String(),
+    'postedBy': postedBy,
     'viewCount': viewCount,
     'applicationCount': applicationCount,
-    'isActive': isActive,
   };
 
   Job copyWith({
@@ -127,15 +150,17 @@ class Job {
     int? maxYearsExperience,
     String? salaryMin,
     String? salaryMax,
-    String? salaryCurrency,
     String? source,
-    String? platform,
+    JobSourceType? sourceType,
+    String? applyLink,
     DateTime? postedDate,
     DateTime? deadline,
+    DateTime? scrapedAt,
+    String? postedBy,
+    JobStatus? status,
     DateTime? createdAt,
     int? viewCount,
     int? applicationCount,
-    bool? isActive,
   }) {
     return Job(
       id: id ?? this.id,
@@ -143,22 +168,24 @@ class Job {
       company: company ?? this.company,
       description: description ?? this.description,
       location: location ?? this.location,
-      jobType: jobType ?? this.jobType,
       category: category ?? this.category,
+      source: source ?? this.source,
+      sourceType: sourceType ?? this.sourceType,
+      postedDate: postedDate ?? this.postedDate,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+      jobType: jobType ?? this.jobType,
       requiredSkills: requiredSkills ?? this.requiredSkills,
       minYearsExperience: minYearsExperience ?? this.minYearsExperience,
       maxYearsExperience: maxYearsExperience ?? this.maxYearsExperience,
       salaryMin: salaryMin ?? this.salaryMin,
       salaryMax: salaryMax ?? this.salaryMax,
-      salaryCurrency: salaryCurrency ?? this.salaryCurrency,
-      source: source ?? this.source,
-      platform: platform ?? this.platform,
-      postedDate: postedDate ?? this.postedDate,
+      applyLink: applyLink ?? this.applyLink,
       deadline: deadline ?? this.deadline,
-      createdAt: createdAt ?? this.createdAt,
+      scrapedAt: scrapedAt ?? this.scrapedAt,
+      postedBy: postedBy ?? this.postedBy,
       viewCount: viewCount ?? this.viewCount,
       applicationCount: applicationCount ?? this.applicationCount,
-      isActive: isActive ?? this.isActive,
     );
   }
 }
