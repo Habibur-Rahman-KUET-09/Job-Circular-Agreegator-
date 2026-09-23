@@ -1,14 +1,26 @@
-"""Firestore ingestion layer for storing scraped jobs with duplicate detection."""
+"""Firestore ingestion layer for storing scraped jobs, skipping ones already stored."""
 
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 import firebase_admin
 from firebase_admin import credentials, firestore
 import logging
-from difflib import SequenceMatcher
+import hashlib
+
+from google.api_core.exceptions import AlreadyExists
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+def job_doc_id(job: Dict, source: str) -> str:
+    """Stable Firestore ID so the same posting maps to the same document every run."""
+    link = (job.get("applyLink") or "").strip()
+    if link.startswith("http"):
+        key = f"{source}|{link}"
+    else:
+        key = f"{source}|{job.get('title', '').strip().lower()}|{job.get('company', '').strip().lower()}"
+    return hashlib.sha1(key.encode("utf-8")).hexdigest()[:20]
 
 
 class FirestoreIngestion:
@@ -29,7 +41,6 @@ class FirestoreIngestion:
 
         self.db = firestore.client()
         self.jobs_collection = "jobs"
-        self.duplicate_threshold = 0.85  # 85% similarity = duplicate
 
     def ingest_jobs(self, jobs: List[Dict], source: str) -> Dict:
         """Ingest a list of jobs into Firestore."""
@@ -60,93 +71,24 @@ class FirestoreIngestion:
         return stats
 
     def _ingest_single_job(self, job: Dict, source: str) -> str:
-        """Ingest a single job and return the result (inserted/duplicate/updated/error)."""
+        """Create the job unless it already exists; returns 'inserted' or 'duplicate'."""
+        now = datetime.now().isoformat()
+        job_data = {k: v for k, v in job.items() if k != "id"}
+        job_data.update({
+            "status": "pending",
+            "source": source,
+            "createdAt": now,
+            "updatedAt": now,
+        })
+        doc_ref = self.db.collection(self.jobs_collection).document(job_doc_id(job, source))
         try:
-            # Check for duplicates
-            duplicate_job = self._find_duplicate(job)
-
-            if duplicate_job:
-                logger.info(f"Found duplicate for job: {job['title']}")
-                # Update existing job (increment view count, etc.)
-                self._update_existing_job(duplicate_job['id'], job)
-                return "duplicate"
-
-            # Insert new job
-            job_data = {
-                **job,
-                "status": "pending",
-                "source": source,
-                "createdAt": datetime.now().isoformat(),
-                "updatedAt": datetime.now().isoformat(),
-            }
-
-            # Remove id if it's a temp uuid
-            if "id" in job_data:
-                job_data.pop("id")
-
-            doc_ref = self.db.collection(self.jobs_collection).add(job_data)
-            logger.info(f"Inserted job: {job['title']} with ID: {doc_ref[1].id}")
-            return "inserted"
-
-        except Exception as e:
-            logger.error(f"Error ingesting job: {str(e)}")
-            raise
-
-    def _find_duplicate(self, job: Dict) -> Optional[Dict]:
-        """Find a duplicate job in Firestore."""
-        try:
-            # Search for jobs with similar title and company from same source
-            title = job.get("title", "")
-            company = job.get("company", "")
-            source = job.get("source", "")
-
-            # Query jobs from same source and company within last 7 days
-            seven_days_ago = datetime.now() - timedelta(days=7)
-
-            query = self.db.collection(self.jobs_collection) \
-                .where("source", "==", source) \
-                .where("company", "==", company) \
-                .where("createdAt", ">=", seven_days_ago.isoformat())
-
-            docs = query.stream()
-
-            for doc in docs:
-                existing_job = doc.to_dict()
-                existing_job["id"] = doc.id
-
-                # Check title similarity
-                similarity = self._calculate_similarity(
-                    title,
-                    existing_job.get("title", "")
-                )
-
-                if similarity >= self.duplicate_threshold:
-                    return existing_job
-
-            return None
-
-        except Exception as e:
-            logger.error(f"Error finding duplicate: {str(e)}")
-            return None
-
-    def _calculate_similarity(self, str1: str, str2: str) -> float:
-        """Calculate similarity between two strings (0-1)."""
-        matcher = SequenceMatcher(None, str1.lower(), str2.lower())
-        return matcher.ratio()
-
-    def _update_existing_job(self, job_id: str, new_job: Dict):
-        """Update an existing job document."""
-        try:
-            update_data = {
-                "updatedAt": datetime.now().isoformat(),
-                "viewCount": firestore.Increment(1),
-            }
-
-            self.db.collection(self.jobs_collection).document(job_id).update(update_data)
-            logger.info(f"Updated job: {job_id}")
-
-        except Exception as e:
-            logger.error(f"Error updating job {job_id}: {str(e)}")
+            # create() fails if the document exists, so a re-scraped job never
+            # overwrites a moderator's approve/reject decision.
+            doc_ref.create(job_data)
+        except AlreadyExists:
+            return "duplicate"
+        logger.info(f"Inserted job: {job['title']} ({doc_ref.id})")
+        return "inserted"
 
     def approve_jobs(self, job_ids: List[str]) -> Dict:
         """Approve multiple jobs (moderator action)."""
