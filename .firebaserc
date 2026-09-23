@@ -1,12 +1,12 @@
 {
   "projects": {
-    "default": "job-circular-aggregator"
+    "default": "shondhan-58fe0"
   },
   "targets": {
-    "job-circular-aggregator": {
+    "shondhan-58fe0": {
       "hosting": {
         "default": [
-          "job-circular-aggregator"
+          "shondhan-58fe0"
         ]
       }
     }
