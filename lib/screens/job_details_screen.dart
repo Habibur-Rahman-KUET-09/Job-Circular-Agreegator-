@@ -28,20 +28,23 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final s = Strings.of(context);
-    final isSaved = context.watch<SavedJobProvider>().isSaved(widget.job.id);
+    final savedJobProvider = context.watch<SavedJobProvider>();
 
     return Scaffold(
       appBar: AppBar(
         title: Text(s.jobDetails),
         actions: [
           IconButton(
-            icon: Icon(isSaved ? Icons.bookmark : Icons.bookmark_border),
+            icon: Icon(savedJobProvider.savedJobs.any((j) => j.jobId == widget.job.id)
+                ? Icons.bookmark
+                : Icons.bookmark_border),
             onPressed: () {
-              if (isSaved) {
-                context.read<SavedJobProvider>().removeSavedJob(widget.job.id);
-              } else {
-                context.read<SavedJobProvider>().addSavedJob(widget.job);
-              }
+              savedJobProvider.toggleSaveJob(
+                jobId: widget.job.id,
+                jobTitle: widget.job.title,
+                company: widget.job.company,
+                location: widget.job.location,
+              );
             },
           ),
         ],
@@ -181,11 +184,16 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                       ),
                     ),
                   if (widget.job.applyLink != null) const SizedBox(width: 12),
-                  if (!isSaved)
+                  if (savedJobProvider.savedJobs.every((j) => j.jobId != widget.job.id))
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () {
-                          context.read<SavedJobProvider>().addSavedJob(widget.job);
+                          savedJobProvider.saveJob(
+                            jobId: widget.job.id,
+                            jobTitle: widget.job.title,
+                            company: widget.job.company,
+                            location: widget.job.location,
+                          );
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text(s.jobSaved)),
                           );

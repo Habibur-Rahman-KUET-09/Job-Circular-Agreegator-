@@ -1,10 +1,17 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/strings.dart';
 import '../models/job.dart';
+import '../providers/application_provider.dart';
 import '../providers/job_provider.dart';
+import '../providers/saved_job_provider.dart';
+import '../providers/user_profile_provider.dart';
+import '../services/application_service.dart';
 import '../services/auth_service.dart';
+import '../services/saved_job_service.dart';
+import '../services/user_profile_service.dart';
 import 'auth/login_screen.dart';
 import 'job_details_screen.dart';
 
@@ -19,10 +26,12 @@ class _HomeScreenState extends State<HomeScreen> {
   JobCategory? _selectedCategory;
   String? _selectedLocation;
   String? _searchTerm;
+  late String userId;
 
   @override
   void initState() {
     super.initState();
+    userId = AuthService.instance.currentUser?.uid ?? '';
     Future.microtask(() {
       context.read<JobProvider>().fetchAllJobs();
     });
@@ -91,9 +100,17 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _navigateToJobDetails(BuildContext context, Job job) {
+    final firestore = FirebaseFirestore.instance;
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => JobDetailsScreen(job: job),
+        builder: (context) => MultiProvider(
+          providers: [
+            ChangeNotifierProvider(
+              create: (_) => SavedJobProvider(SavedJobService(firestore), userId),
+            ),
+          ],
+          child: JobDetailsScreen(job: job),
+        ),
       ),
     );
   }
@@ -136,7 +153,7 @@ class _HomeScreenState extends State<HomeScreen> {
               title: Text(Strings.of(context).myProfile),
               onTap: () {
                 Navigator.pop(context);
-                // Navigate to profile screen
+                _navigateToProfile();
               },
             ),
             ListTile(
@@ -144,7 +161,7 @@ class _HomeScreenState extends State<HomeScreen> {
               title: Text(Strings.of(context).savedJobs),
               onTap: () {
                 Navigator.pop(context);
-                // Navigate to saved jobs screen
+                _navigateToSavedJobs();
               },
             ),
             ListTile(
@@ -152,7 +169,7 @@ class _HomeScreenState extends State<HomeScreen> {
               title: Text(Strings.of(context).myApplications),
               onTap: () {
                 Navigator.pop(context);
-                // Navigate to applications screen
+                _navigateToApplications();
               },
             ),
             const Divider(),
@@ -165,6 +182,54 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _navigateToProfile() {
+    final firestore = FirebaseFirestore.instance;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => MultiProvider(
+          providers: [
+            ChangeNotifierProvider(
+              create: (_) => UserProfileProvider(UserProfileService(firestore), userId),
+            ),
+          ],
+          child: const UserProfileScreen(),
+        ),
+      ),
+    );
+  }
+
+  void _navigateToSavedJobs() {
+    final firestore = FirebaseFirestore.instance;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => MultiProvider(
+          providers: [
+            ChangeNotifierProvider(
+              create: (_) => SavedJobProvider(SavedJobService(firestore), userId),
+            ),
+          ],
+          child: const SavedJobsScreen(),
+        ),
+      ),
+    );
+  }
+
+  void _navigateToApplications() {
+    final firestore = FirebaseFirestore.instance;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => MultiProvider(
+          providers: [
+            ChangeNotifierProvider(
+              create: (_) => ApplicationProvider(ApplicationService(firestore), userId),
+            ),
+          ],
+          child: const ApplicationsScreen(),
         ),
       ),
     );

@@ -652,4 +652,26 @@ class Strings {
   String get loginTooManyAttempts => _t('অনেক ব্যর্থ প্রচেষ্টা। অ্যাকাউন্ট 15 মিনিটের জন্য লক করা হয়েছে', 'Too many failed attempts. Account locked for 15 minutes');
   String get loginGoogleSignInFailed => String Function(String) => (error) => _t('Google সাইন-ইন ব্যর্থ: $error', 'Google sign-in failed: $error');
   String get errorOccurred => _t('একটি ত্রুটি ঘটেছে', 'An error occurred');
+  String get noSavedJobs => _t('কোনো সংরক্ষিত চাকরি নেই', 'No saved jobs');
+  String get jobRemoved => _t('চাকরি সরানো হয়েছে', 'Job removed');
+  String get noApplications => _t('কোনো আবেদন নেই', 'No applications');
+  String get noApplicationsInStatus => _t('এই স্ট্যাটাসে কোনো আবেদন নেই', 'No applications in this status');
+  String get fullName => _t('সম্পূর্ণ নাম', 'Full Name');
+  String get phone => _t('ফোন', 'Phone');
+  String get bio => _t('জীবনী', 'Bio');
+  String get currentPosition => _t('বর্তমান পদ', 'Current Position');
+  String get yearsOfExperience => _t('অভিজ্ঞতার বছর', 'Years of Experience');
+  String get basicInfo => _t('মৌলিক তথ্য', 'Basic Info');
+  String get noName => _t('নাম নেই', 'No Name');
+  String get noProfileData => _t('কোনো প্রোফাইল ডেটা নেই', 'No profile data');
+  String get profileUpdated => _t('প্রোফাইল আপডেট হয়েছে', 'Profile updated');
+  String get skillsHint => _t('দক্ষতা যোগ করুন', 'Add skills');
+  String get skillsHintExample => _t('উদাহরণ: ফ্লাটার, ডার্ট, ফায়ারবেস', 'Example: Flutter, Dart, Firebase');
+  String get notes => _t('নোট', 'Notes');
+  String get remove => _t('সরান', 'Remove');
+  String savedOn(String date) => _t('সংরক্ষিত: $date', 'Saved: $date');
+  String get viewDetails => _t('বিস্তারিত দেখুন', 'View Details');
+  String appliedOn(String date) => _t('আবেদন করা হয়েছে: $date', 'Applied: $date');
+  String get interviewScheduled => _t('সাক্ষাৎকার নির্ধারিত', 'Interview Scheduled');
+  String get updateStatus => _t('স্থিতি আপডেট করুন', 'Update Status');
 }

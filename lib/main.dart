@@ -32,9 +32,6 @@ class JobCircularApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider.value(value: localeProvider),
         ChangeNotifierProvider(create: (_) => JobProvider(JobService(firestore))),
-        ChangeNotifierProvider(create: (_) => ApplicationProvider(ApplicationService(firestore))),
-        ChangeNotifierProvider(create: (_) => UserProfileProvider(UserProfileService(firestore))),
-        ChangeNotifierProvider(create: (_) => SavedJobProvider(SavedJobService(firestore))),
       ],
       child: Consumer<LocaleProvider>(
         builder: (context, locale, _) => MaterialApp(
