@@ -69,6 +69,23 @@ class JobTypeMappingTest(unittest.TestCase):
         self.assertEqual(job["jobType"], "fullTime")
 
 
+class CategoryGuessTest(unittest.TestCase):
+    def test_guesses_from_whole_words(self):
+        scraper = _Scraper("test")
+        cases = {
+            "Probationary Unit Officer (Nobin Program) Grameen Shakti": "other",
+            "Head of IT, Acme Ltd": "it",
+            "Senior Software Engineer": "it",
+            "Accounts Executive, B & T Group": "finance",
+            "Relationship Manager, Dutch-Bangla Bank PLC": "bank",
+            "Medical Promotion Officer, Square Pharmaceuticals": "healthcare",
+            "Sr. Sales & Marketing Executive": "marketing",
+            "Item Checker": "other",
+        }
+        for text, expected in cases.items():
+            self.assertEqual(scraper._guess_category(text), expected, text)
+
+
 class IngestionTest(unittest.TestCase):
     def _job(self, **overrides):
         job = _Scraper("bdjobs")._create_job_dict(

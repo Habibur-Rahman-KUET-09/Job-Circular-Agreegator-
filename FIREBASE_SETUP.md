@@ -176,7 +176,7 @@ Firebase Console → APIs & Services এ enable করুন:
 
 ```bash
 cd scrapers
-python scraper_manager.py
+python run_scrapers.py --mode dry-run
 ```
 
 এটি test করবে:
@@ -223,20 +223,18 @@ job-circular-aggregator/
 ├── firestore.indexes.json       # Composite indexes
 ├── .firebaserc                  # Project reference
 ├── functions/
-│   ├── src/
-│   │   ├── index.ts
-│   │   ├── sendNotifications.ts
-│   │   └── runScrapers.ts
+│   ├── index.ts
+│   ├── sendNotifications.ts
+│   ├── runScrapers.ts
 │   ├── package.json
 │   └── tsconfig.json
 ├── scrapers/
 │   ├── requirements.txt
 │   ├── base_scraper.py
 │   ├── bdjobs_scraper.py
-│   ├── chakri_scraper.py
 │   ├── newspaper_scraper.py
 │   ├── firestore_ingestion.py
-│   ├── scraper_manager.py
+│   ├── run_scrapers.py
 │   └── firebase-credentials.json (add this, don't commit)
 └── lib/
     └── (Flutter app code)

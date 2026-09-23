@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import List, Dict, Optional
 from uuid import uuid4
 import logging
+import re
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -85,26 +86,27 @@ class BaseScraper(ABC):
         }
         return job_type_mapping.get(normalized)
 
-    # Checked in order, so "bank" wins over the broader "finance" keywords.
-    _CATEGORY_KEYWORDS = [
-        ("bank", ["bank", "banking"]),
-        ("ngo", ["ngo", "foundation", "development organization", "unicef", "brac"]),
-        ("govt", ["government", "ministry", "directorate", "bangladesh railway", "public service"]),
-        ("it", ["software", "developer", "programmer", "it ", "i.t.", "network", "devops", "web ", "app "]),
-        ("finance", ["account", "finance", "audit", "tax", "vat"]),
-        ("healthcare", ["doctor", "nurse", "medical", "pharma", "hospital", "clinic", "dental", "health"]),
-        ("education", ["teacher", "lecturer", "school", "university", "college", "tutor"]),
-        ("hr", ["human resource", "hr ", "recruit", "talent"]),
-        ("marketing", ["marketing", "brand", "digital marketing"]),
-        ("sales", ["sales", "business development", "showroom"]),
-        ("operations", ["operation", "supply chain", "logistics", "procurement", "production"]),
+    # Regexes checked in order, so "bank" wins over the broader finance terms.
+    # Word boundaries matter: a bare "it" would match "unit" or "item".
+    _CATEGORY_PATTERNS = [
+        ("bank", r"\bbank"),
+        ("ngo", r"\bngo\b|\bfoundation\b|\bunicef\b|\bbrac\b"),
+        ("govt", r"\bgovernment\b|\bministry\b|\bdirectorate\b|\bpublic service\b"),
+        ("it", r"\bit\b|\bsoftware\b|\bdeveloper\b|\bprogrammer\b|\bnetwork\b|\bdevops\b|\bweb\b"),
+        ("finance", r"\baccount|\bfinanc|\baudit|\btax\b|\bvat\b"),
+        ("healthcare", r"\bdoctor|\bnurse|\bmedical\b|\bpharm|\bhospital|\bclinic|\bdental\b|\bhealth"),
+        ("education", r"\bteacher|\blecturer|\bschool|\buniversity|\bcollege|\btutor"),
+        ("hr", r"\bhuman resource|\bhr\b|\brecruit|\btalent"),
+        ("marketing", r"\bmarketing\b|\bbrand"),
+        ("sales", r"\bsales\b|\bbusiness development\b|\bshowroom"),
+        ("operations", r"\boperation|\bsupply chain\b|\blogistic|\bprocurement\b|\bproduction\b"),
     ]
 
     def _guess_category(self, text: str) -> str:
         """Best-effort category from free text such as the title and company."""
-        lowered = f" {text.lower()} "
-        for category, keywords in self._CATEGORY_KEYWORDS:
-            if any(keyword in lowered for keyword in keywords):
+        lowered = text.lower()
+        for category, pattern in self._CATEGORY_PATTERNS:
+            if re.search(pattern, lowered):
                 return category
         return "other"
 
