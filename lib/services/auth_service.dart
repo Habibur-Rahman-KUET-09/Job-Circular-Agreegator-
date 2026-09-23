@@ -1,18 +1,21 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 enum UserRole { user, recruiter, moderator, admin }
 
 class AuthService {
+  AuthService._();
+  static final AuthService instance = AuthService._();
+
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  bool _googleInitialized = false;
 
-  // Stream of auth state changes
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
   User? get currentUser => _auth.currentUser;
 
-  // Get current user's role from custom claims
   Future<UserRole?> getCurrentUserRole() async {
     try {
       await _auth.currentUser?.reload();
@@ -30,7 +33,6 @@ class AuthService {
     }
   }
 
-  // Get current user's company (for recruiters)
   Future<String?> getCurrentUserCompany() async {
     try {
       await _auth.currentUser?.reload();
@@ -41,104 +43,79 @@ class AuthService {
     }
   }
 
-  // Sign up with email and password
-  Future<User?> signUpWithEmail(String email, String password, String fullName) async {
-    try {
-      final UserCredential credential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      // Update display name
-      await credential.user?.updateDisplayName(fullName);
-
-      // Create user profile in Firestore
-      await _firestore.collection('users').doc(credential.user!.uid).set({
-        'email': email,
-        'fullName': fullName,
-        'createdAt': DateTime.now().toIso8601String(),
-        'notificationsEnabled': true,
-        'preferredLanguage': 'bn',
-      }, SetOptions(merge: true));
-
-      return credential.user;
-    } catch (e) {
-      throw Exception('Sign up failed: $e');
+  // Auth errors are rethrown as FirebaseAuthException so LoginScreen can map
+  // e.code to a localized message.
+  Future<User?> signUpWithEmail({
+    required String email,
+    required String password,
+    String? fullName,
+  }) async {
+    final credential = await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+    final user = credential.user!;
+    if (fullName != null && fullName.isNotEmpty) {
+      await user.updateDisplayName(fullName);
     }
+    await _createProfileIfMissing(user, fullName: fullName);
+    return user;
   }
 
-  // Sign in with email and password
-  Future<User?> signInWithEmail(String email, String password) async {
-    try {
-      final UserCredential credential = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      return credential.user;
-    } catch (e) {
-      throw Exception('Sign in failed: $e');
-    }
+  Future<User?> signInWithEmail({
+    required String email,
+    required String password,
+  }) async {
+    final credential = await _auth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+    return credential.user;
   }
 
-  // Sign in with Google
   Future<User?> signInWithGoogle() async {
-    try {
-      final GoogleSignInAccount? googleUser = await _getGoogleSignIn().signIn();
-      if (googleUser == null) return null;
-
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      final UserCredential userCredential = await _auth.signInWithCredential(credential);
-
-      // Create user profile if doesn't exist
-      final userDoc = await _firestore.collection('users').doc(userCredential.user!.uid).get();
-      if (!userDoc.exists) {
-        await _firestore.collection('users').doc(userCredential.user!.uid).set({
-          'email': userCredential.user!.email,
-          'fullName': userCredential.user!.displayName ?? 'User',
-          'profilePhotoUrl': userCredential.user!.photoURL,
-          'createdAt': DateTime.now().toIso8601String(),
-          'notificationsEnabled': true,
-          'preferredLanguage': 'bn',
-        });
-      }
-
-      return userCredential.user;
-    } catch (e) {
-      throw Exception('Google sign in failed: $e');
+    final googleSignIn = GoogleSignIn.instance;
+    if (!_googleInitialized) {
+      await googleSignIn.initialize();
+      _googleInitialized = true;
     }
+    final account = await googleSignIn.authenticate();
+    final credential = GoogleAuthProvider.credential(
+      idToken: account.authentication.idToken,
+    );
+    final userCredential = await _auth.signInWithCredential(credential);
+    final user = userCredential.user!;
+    await _createProfileIfMissing(user);
+    return user;
   }
 
-  // Send password reset email
-  Future<void> sendPasswordResetEmail(String email) async {
-    try {
-      await _auth.sendPasswordResetEmail(email: email);
-    } catch (e) {
-      throw Exception('Failed to send password reset email: $e');
-    }
+  Future<void> _createProfileIfMissing(User user, {String? fullName}) async {
+    final doc = _firestore.collection('users').doc(user.uid);
+    if ((await doc.get()).exists) return;
+    await doc.set({
+      'userId': user.uid,
+      'email': user.email,
+      'fullName': fullName ?? user.displayName ?? 'User',
+      'profilePhotoUrl': user.photoURL,
+      'createdAt': DateTime.now().toIso8601String(),
+      'notificationsEnabled': true,
+      'preferredLanguage': 'bn',
+    });
   }
 
-  // Reset password with code
-  Future<void> resetPasswordWithCode(String code, String newPassword) async {
-    try {
-      await _auth.confirmPasswordReset(code: code, newPassword: newPassword);
-    } catch (e) {
-      throw Exception('Failed to reset password: $e');
-    }
+  Future<void> sendPasswordResetEmail(String email) {
+    return _auth.sendPasswordResetEmail(email: email);
   }
 
-  // Sign out
+  Future<void> resetPasswordWithCode(String code, String newPassword) {
+    return _auth.confirmPasswordReset(code: code, newPassword: newPassword);
+  }
+
   Future<void> signOut() async {
-    try {
-      await _getGoogleSignIn().signOut();
-      await _auth.signOut();
-    } catch (e) {
-      throw Exception('Sign out failed: $e');
+    if (_googleInitialized) {
+      await GoogleSignIn.instance.signOut();
     }
+    await _auth.signOut();
   }
 
   // Set custom claims (admin operation - typically done via Cloud Function)
@@ -157,16 +134,6 @@ class AuthService {
     }
   }
 
-  // Check if email exists
-  Future<bool> doesEmailExist(String email) async {
-    try {
-      final methods = await _auth.fetchSignInMethodsForEmail(email);
-      return methods.isNotEmpty;
-    } catch (e) {
-      return false;
-    }
-  }
-
   // Delete account (permanent)
   Future<void> deleteAccount() async {
     try {
@@ -181,14 +148,6 @@ class AuthService {
     } catch (e) {
       throw Exception('Failed to delete account: $e');
     }
-  }
-
-  // Helper to get Google SignIn instance with default config
-  // In production, configure this with your Google OAuth credentials
-  dynamic _getGoogleSignIn() {
-    // This is a placeholder - implement based on your google_sign_in package usage
-    // In the actual implementation, this would use google_sign_in package
-    return null;
   }
 
   // Update user profile

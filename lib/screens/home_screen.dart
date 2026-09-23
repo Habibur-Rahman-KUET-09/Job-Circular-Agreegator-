@@ -13,7 +13,10 @@ import '../services/auth_service.dart';
 import '../services/saved_job_service.dart';
 import '../services/user_profile_service.dart';
 import 'auth/login_screen.dart';
+import 'applications_screen.dart';
 import 'job_details_screen.dart';
+import 'saved_jobs_screen.dart';
+import 'user_profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

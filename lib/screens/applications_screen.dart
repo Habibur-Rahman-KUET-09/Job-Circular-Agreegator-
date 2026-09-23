@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/strings.dart';
+import '../models/application.dart';
 import '../providers/application_provider.dart';
 
 class ApplicationsScreen extends StatefulWidget {
@@ -77,7 +78,7 @@ class _ApplicationsScreenState extends State<ApplicationsScreen>
                   controller: _tabController,
                   children: [
                     _buildApplicationsList(s, applications, appProvider),
-                    _buildStatusList(s, applications, 'applied', appProvider),
+                    _buildStatusList(s, applications, 'submitted', appProvider),
                     _buildStatusList(s, applications, 'interviewed', appProvider),
                     _buildStatusList(s, applications, 'selected', appProvider),
                     _buildStatusList(s, applications, 'rejected', appProvider),
@@ -215,7 +216,7 @@ class ApplicationCard extends StatelessWidget {
                 Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
                 const SizedBox(width: 4),
                 Text(
-                  s.appliedOn(_formatDate(application.appliedAt)),
+                  s.appliedOn(_formatDate(application.appliedDate)),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
@@ -294,7 +295,7 @@ class ApplicationCard extends StatelessWidget {
             ListTile(
               title: const Text('Applied'),
               onTap: () {
-                onStatusChange(ApplicationStatus.applied);
+                onStatusChange(ApplicationStatus.submitted);
                 Navigator.pop(context);
               },
             ),
@@ -327,73 +328,20 @@ class ApplicationCard extends StatelessWidget {
 
   Color _getStatusColor(ApplicationStatus status) {
     switch (status) {
-      case ApplicationStatus.applied:
-        return Colors.blue;
-      case ApplicationStatus.interviewed:
-        return Colors.orange;
       case ApplicationStatus.selected:
         return Colors.green;
       case ApplicationStatus.rejected:
+      case ApplicationStatus.withdrawn:
         return Colors.red;
+      case ApplicationStatus.interviewScheduled:
+      case ApplicationStatus.interviewed:
+        return Colors.orange;
+      default:
+        return Colors.blue;
     }
   }
 
   String _formatDate(DateTime date) {
     return '${date.day}/${date.month}/${date.year}';
   }
-}
-
-// Model classes (should be in models)
-enum ApplicationStatus { applied, interviewed, selected, rejected }
-
-class Application {
-  final String id;
-  final String jobId;
-  final String jobTitle;
-  final String company;
-  final ApplicationStatus status;
-  final DateTime appliedAt;
-  final DateTime? interviewDate;
-  final String? interviewTime;
-  final String? notes;
-
-  Application({
-    required this.id,
-    required this.jobId,
-    required this.jobTitle,
-    required this.company,
-    required this.status,
-    required this.appliedAt,
-    this.interviewDate,
-    this.interviewTime,
-    this.notes,
-  });
-
-  factory Application.fromJson(Map<String, dynamic> json) {
-    return Application(
-      id: json['id'] as String,
-      jobId: json['jobId'] as String,
-      jobTitle: json['jobTitle'] as String,
-      company: json['company'] as String,
-      status: ApplicationStatus.values.byName(json['status'] as String? ?? 'applied'),
-      appliedAt: DateTime.parse(json['appliedAt'] as String),
-      interviewDate: json['interviewDate'] != null
-          ? DateTime.parse(json['interviewDate'] as String)
-          : null,
-      interviewTime: json['interviewTime'] as String?,
-      notes: json['notes'] as String?,
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'jobId': jobId,
-    'jobTitle': jobTitle,
-    'company': company,
-    'status': status.name,
-    'appliedAt': appliedAt.toIso8601String(),
-    'interviewDate': interviewDate?.toIso8601String(),
-    'interviewTime': interviewTime,
-    'notes': notes,
-  };
 }

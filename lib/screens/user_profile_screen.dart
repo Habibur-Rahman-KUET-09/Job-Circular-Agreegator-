@@ -59,7 +59,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     }
 
     if (profile != null) {
-      _fullNameController.text = profile.fullName ?? '';
+      _fullNameController.text = profile.fullName;
       _phoneController.text = profile.phone ?? '';
       _bioController.text = profile.bio ?? '';
       _currentPositionController.text = profile.currentPosition ?? '';
@@ -90,7 +90,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      profile.fullName ?? s.noName,
+                      profile.fullName.isEmpty ? s.noName : profile.fullName,
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
                     if (profile.currentPosition != null)

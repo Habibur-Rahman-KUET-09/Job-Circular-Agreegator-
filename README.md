@@ -111,19 +111,18 @@ lib/
 
 ## Firebase Setup
 
-Similar to other projects — requires:
+Requires:
 - Authentication (Email, Phone, Google)
 - Firestore (job listings, applications, user profiles)
 - Storage (CV/resume uploads)
 - Cloud Messaging (notifications)
 - Cloud Functions (scheduled job aggregation, notification triggers)
 
-See baytulmal-collection-tracker README for detailed Firebase setup steps.
+See [FIREBASE_SETUP.md](FIREBASE_SETUP.md) for step-by-step setup.
 
 ## Build & Run
 
 ```bash
-# Ensure pubspec.lock is generated (from the copied template)
 flutter pub get
 
 # Run the app
@@ -135,6 +134,6 @@ flutter build apk --release
 
 ## Notes
 
-- Copied structure from baytulmal-collection-tracker as template
-- Firebase credentials need to be configured via `flutterfire configure`
-- Firestore rules and Cloud Functions for job aggregation to be implemented
+- The app targets Firebase project `shondhan-58fe0` (`android/app/google-services.json`, `lib/firebase_options.dart`)
+- Firestore rules and indexes are deployed with `firebase deploy --only firestore`
+- Scheduled Cloud Functions need the Blaze plan; deploy with `firebase deploy --only functions`

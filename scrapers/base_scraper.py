@@ -51,7 +51,7 @@ class BaseScraper(ABC):
             "sourceType": "scraped",
             "postedDate": datetime.now().isoformat(),
             "deadline": deadline.isoformat() if deadline else None,
-            "jobType": job_type.lower() if job_type else None,
+            "jobType": self._map_job_type(job_type),
             "salaryMin": salary_min,
             "salaryMax": salary_max,
             "requiredSkills": required_skills or [],
@@ -65,6 +65,24 @@ class BaseScraper(ABC):
             "applicationCount": 0,
             "createdAt": datetime.now().isoformat(),
         }
+
+    def _map_job_type(self, raw_job_type: Optional[str]) -> Optional[str]:
+        """Map free-text job type to the app's JobType enum names (e.g. fullTime)."""
+        if not raw_job_type:
+            return None
+        normalized = "".join(ch for ch in raw_job_type.lower() if ch.isalpha())
+        job_type_mapping = {
+            "fulltime": "fullTime",
+            "permanent": "fullTime",
+            "parttime": "partTime",
+            "contract": "contract",
+            "contractual": "contract",
+            "temporary": "temporary",
+            "internship": "internship",
+            "intern": "internship",
+            "freelance": "freelance",
+        }
+        return job_type_mapping.get(normalized)
 
     def _map_category(self, raw_category: str) -> str:
         """Map raw category from source to standard categories."""

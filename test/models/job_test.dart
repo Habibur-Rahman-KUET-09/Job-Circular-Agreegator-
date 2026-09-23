@@ -94,6 +94,20 @@ void main() {
     });
   });
 
+  group('Job.jobType', () {
+    test('parses the job type names the scrapers write', () {
+      for (final type in JobType.values) {
+        final job = Job.fromJson({..._minimalJson(), 'jobType': type.name});
+        expect(job.jobType, type);
+      }
+    });
+
+    test('treats an unknown job type as unspecified instead of crashing', () {
+      final job = Job.fromJson({..._minimalJson(), 'jobType': 'full-time'});
+      expect(job.jobType, isNull);
+    });
+  });
+
   group('Job.copyWith', () {
     test('changes only the given fields', () {
       final original = _fullJob();

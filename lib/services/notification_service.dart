@@ -1,5 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -29,8 +30,6 @@ class NotificationService {
       alert: true,
       announcement: true,
       badge: true,
-      carryForward: true,
-      criticalSound: true,
       provisional: false,
       sound: true,
     );
@@ -167,7 +166,7 @@ class NotificationService {
         jobId.hashCode + 1,
         'Application Deadline Reminder',
         '30 days left to apply for $jobTitle at $company',
-        thirtyDaysBefore,
+        tz.TZDateTime.from(thirtyDaysBefore, tz.UTC),
         const NotificationDetails(
           android: AndroidNotificationDetails(
             'deadline_reminders',
@@ -176,8 +175,6 @@ class NotificationService {
           ),
         ),
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
       );
     }
 
@@ -187,7 +184,7 @@ class NotificationService {
         jobId.hashCode + 2,
         'Application Deadline Reminder',
         '7 days left to apply for $jobTitle at $company',
-        sevenDaysBefore,
+        tz.TZDateTime.from(sevenDaysBefore, tz.UTC),
         const NotificationDetails(
           android: AndroidNotificationDetails(
             'deadline_reminders',
@@ -196,8 +193,6 @@ class NotificationService {
           ),
         ),
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
       );
     }
 
@@ -207,7 +202,7 @@ class NotificationService {
         jobId.hashCode + 3,
         'Urgent: Application Deadline Tomorrow!',
         'Last chance to apply for $jobTitle at $company',
-        oneDayBefore,
+        tz.TZDateTime.from(oneDayBefore, tz.UTC),
         const NotificationDetails(
           android: AndroidNotificationDetails(
             'deadline_reminders',
@@ -220,8 +215,6 @@ class NotificationService {
           ),
         ),
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
       );
     }
   }

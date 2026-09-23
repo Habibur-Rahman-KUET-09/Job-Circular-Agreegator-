@@ -1,4 +1,3 @@
-import 'package:uuid/uuid.dart';
 
 enum JobType { fullTime, partTime, contract, temporary, internship, freelance }
 
@@ -94,7 +93,7 @@ class Job {
       postedDate: DateTime.parse(json['postedDate'] as String),
       status: JobStatus.values.byName(json['status'] as String? ?? 'approved'),
       createdAt: DateTime.parse(json['createdAt'] as String),
-      jobType: json['jobType'] != null ? JobType.values.byName(json['jobType'] as String) : null,
+      jobType: JobType.values.asNameMap()[json['jobType']],
       requiredSkills: json['requiredSkills'] != null
           ? List<String>.from(json['requiredSkills'] as List)
           : null,

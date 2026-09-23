@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/strings.dart';
+import '../models/saved_job.dart';
 import '../providers/saved_job_provider.dart';
 
 class SavedJobsScreen extends StatefulWidget {
@@ -208,47 +209,4 @@ class SavedJobCard extends StatelessWidget {
   String _formatDate(DateTime date) {
     return '${date.day}/${date.month}/${date.year}';
   }
-}
-
-// Model class (should be in models/saved_job.dart)
-class SavedJob {
-  final String id;
-  final String jobId;
-  final String jobTitle;
-  final String company;
-  final String location;
-  final DateTime savedAt;
-  final String? notes;
-
-  SavedJob({
-    required this.id,
-    required this.jobId,
-    required this.jobTitle,
-    required this.company,
-    required this.location,
-    required this.savedAt,
-    this.notes,
-  });
-
-  factory SavedJob.fromJson(Map<String, dynamic> json) {
-    return SavedJob(
-      id: json['id'] as String,
-      jobId: json['jobId'] as String,
-      jobTitle: json['jobTitle'] as String,
-      company: json['company'] as String,
-      location: json['location'] as String,
-      savedAt: DateTime.parse(json['savedAt'] as String),
-      notes: json['notes'] as String?,
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'jobId': jobId,
-    'jobTitle': jobTitle,
-    'company': company,
-    'location': location,
-    'savedAt': savedAt.toIso8601String(),
-    'notes': notes,
-  };
 }

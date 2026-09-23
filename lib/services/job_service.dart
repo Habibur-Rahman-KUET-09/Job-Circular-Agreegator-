@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:uuid/uuid.dart';
 import '../models/index.dart';
 
 class JobService {
@@ -68,7 +67,7 @@ class JobService {
       if (skills != null && skills.isNotEmpty) {
         jobs = jobs.where((job) {
           return skills.any((skill) =>
-              job.requiredSkills.any((required) =>
+              (job.requiredSkills ?? const <String>[]).any((required) =>
                   required.toLowerCase().contains(skill.toLowerCase())));
         }).toList();
       }
