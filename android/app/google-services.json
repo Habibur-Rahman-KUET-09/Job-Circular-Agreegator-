@@ -12,7 +12,20 @@
           "package_name": "com.jobcircular.aggregator"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "164954399351-ftrg75b273eljc2s06ad4rto9tbrsug3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.jobcircular.aggregator",
+            "certificate_hash": "8900af7fadd053ff417faa03a5394f6e30341168"
+          }
+        },
+        {
+          "client_id": "164954399351-8o7s9n8i0v5nfl4b4vrt0d474sloicg5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDhGl1CZGQKwkk1ySYX5YaE-beSDw7pZ4M"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "164954399351-8o7s9n8i0v5nfl4b4vrt0d474sloicg5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
