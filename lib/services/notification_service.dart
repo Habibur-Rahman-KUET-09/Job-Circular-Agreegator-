@@ -77,7 +77,7 @@ class NotificationService {
     );
 
     _showLocalNotification(
-      title: message.notification?.title ?? 'Job Circular Aggregator',
+      title: message.notification?.title ?? 'সন্ধান',
       body: message.notification?.body ?? '',
       payload: message.data,
     );
@@ -100,7 +100,7 @@ class NotificationService {
   }) async {
     const androidDetails = AndroidNotificationDetails(
       'job_circular_channel',
-      'Job Circular Notifications',
+      'Shondhan notifications',
       channelDescription: 'Notifications for job circulars and applications',
       importance: Importance.max,
       priority: Priority.high,

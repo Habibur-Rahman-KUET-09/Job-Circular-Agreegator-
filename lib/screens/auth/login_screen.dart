@@ -190,7 +190,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.account_balance, size: 56),
+                    Center(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Image.asset('assets/images/logo.png', width: 88, height: 88),
+                      ),
+                    ),
                     const SizedBox(height: 12),
                     Text(
                       s.appTitle,

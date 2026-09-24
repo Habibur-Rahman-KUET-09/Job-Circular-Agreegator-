@@ -43,13 +43,16 @@ flutter_launcher_icons:
   android: true
   ios: false # this project has no ios/ platform directory
   image_path: "assets/icon/app_icon.png"
-  adaptive_icon_background: "#081A15"
+  adaptive_icon_background: "assets/icon/app_icon_background.png"
   adaptive_icon_foreground: "assets/icon/app_icon_foreground.png"
+  # The foreground art is already sized to the adaptive-icon safe zone.
+  adaptive_icon_foreground_inset: 0
 
 flutter:
   uses-material-design: true
 
   assets:
+    - assets/images/logo.png
     - assets/fonts/NotoSansBengali-Regular.ttf
     - assets/fonts/NotoSansBengali-Bold.ttf
 

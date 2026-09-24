@@ -27,7 +27,7 @@ class Strings {
   String _t(String bn, String en) => _bn ? bn : en;
 
   // ---- Common / shared ----
-  String get appTitle => _t('জব সার্কুলার এগ্রিগেটর', 'Job Circular Aggregator');
+  String get appTitle => _t('সন্ধান', 'Shondhan');
   String get cancel => _t('বাতিল', 'Cancel');
   String get save => _t('সংরক্ষণ করুন', 'Save');
   String get delete => _t('মুছে ফেলুন', 'Delete');

@@ -14,7 +14,7 @@
     -->
 
     <application
-        android:label="জব সার্কুলার"
+        android:label="সন্ধান"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="false">
