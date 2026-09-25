@@ -2,7 +2,9 @@ name: Scrape jobs
 
 on:
   schedule:
-    - cron: "0 0 * * *" # 06:00 Asia/Dhaka
+    # Every 3 hours (06:00, 09:00, ... Asia/Dhaka). bdjobs only shows its
+    # newest ~60 jobs, so frequent runs are what catch everything posted.
+    - cron: "0 */3 * * *"
   workflow_dispatch:
     inputs:
       mode:
@@ -16,6 +18,11 @@ on:
       keyword:
         description: "probe only: text to find in the page's JavaScript"
         required: false
+
+# A slow run never overlaps the next scheduled one.
+concurrency:
+  group: scrape-jobs
+  cancel-in-progress: false
 
 jobs:
   scrape:
