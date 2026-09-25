@@ -23,10 +23,12 @@ service cloud.firestore {
       // Read: Anyone can view jobs (public feed)
       allow read: if true;
 
-      // Create: Only admin, moderator, recruiter can create jobs
-      // Recruiters can only create jobs for their own company
+      // Create: Only admin, moderator, recruiter can create jobs, always as
+      // pending so a hand-entered job is reviewed before anyone sees it.
+      // Recruiters can only create jobs for their own company.
       allow create: if request.auth != null
                     && request.auth.token.role in ['admin', 'moderator', 'recruiter']
+                    && request.resource.data.status == 'pending'
                     && (request.auth.token.role != 'recruiter'
                         || request.resource.data.company == request.auth.token.company);
 
@@ -38,7 +40,9 @@ service cloud.firestore {
                     && (request.auth.token.role in ['admin', 'moderator']
                         || (request.auth.token.role == 'recruiter'
                             && resource.data.company == request.auth.token.company
-                            && resource.data.postedBy == request.auth.uid));
+                            && resource.data.postedBy == request.auth.uid
+                            // Recruiters can't approve their own jobs.
+                            && request.resource.data.status == resource.data.status));
 
       // Delete: Only admin can delete jobs
       allow delete: if request.auth != null

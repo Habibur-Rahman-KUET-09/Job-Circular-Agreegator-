@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/strings.dart';
+import '../utils/open_link.dart';
 import '../models/job.dart';
+import '../providers/application_provider.dart';
 import '../providers/saved_job_provider.dart';
 
 class JobDetailsScreen extends StatefulWidget {
@@ -19,9 +20,10 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    // Increment view count
     Future.microtask(() {
-      // This would be called through the provider
+      if (!mounted) return;
+      context.read<SavedJobProvider>().fetchSavedJobs();
+      context.read<ApplicationProvider>().fetchApplications();
     });
   }
 
@@ -169,21 +171,22 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                   icon: Icons.link,
                   label: s.applyLink,
                   value: widget.job.applyLink!,
+                  isLink: isWebLink(widget.job.applyLink),
                 ),
               const SizedBox(height: 32),
 
               // Action buttons
               Row(
                 children: [
-                  if (widget.job.applyLink != null)
+                  if (isWebLink(widget.job.applyLink))
                     Expanded(
                       child: FilledButton.icon(
-                        onPressed: () => _launchUrl(widget.job.applyLink!),
+                        onPressed: () => openInAppBrowser(context, widget.job.applyLink!),
                         icon: const Icon(Icons.open_in_new),
                         label: Text(s.applyNow),
                       ),
                     ),
-                  if (widget.job.applyLink != null) const SizedBox(width: 12),
+                  if (isWebLink(widget.job.applyLink)) const SizedBox(width: 12),
                   if (savedJobProvider.savedJobs.every((j) => j.jobId != widget.job.id))
                     Expanded(
                       child: OutlinedButton.icon(
@@ -204,6 +207,8 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                     ),
                 ],
               ),
+              const SizedBox(height: 12),
+              _buildApplicationButton(s),
               const SizedBox(height: 16),
             ],
           ),
@@ -212,11 +217,41 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
     );
   }
 
+  Widget _buildApplicationButton(Strings s) {
+    final applications = context.watch<ApplicationProvider>();
+    final alreadyApplied = applications.applications.any((a) => a.jobId == widget.job.id);
+    if (alreadyApplied) {
+      return OutlinedButton.icon(
+        onPressed: null,
+        icon: const Icon(Icons.check_circle),
+        label: Text(s.alreadyInApplications),
+      );
+    }
+    return OutlinedButton.icon(
+      onPressed: applications.isLoading
+          ? null
+          : () async {
+              final id = await applications.createApplication(
+                jobId: widget.job.id,
+                jobTitle: widget.job.title,
+                company: widget.job.company,
+              );
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(id != null ? s.addedToApplications : s.errorOccurred)),
+              );
+            },
+      icon: const Icon(Icons.playlist_add_check),
+      label: Text(s.markApplied),
+    );
+  }
+
   Widget _buildInfoRow(
     BuildContext context, {
     required IconData icon,
     required String label,
     required String value,
+    bool isLink = false,
   }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -234,10 +269,13 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                     ),
               ),
               const SizedBox(height: 4),
-              Text(
-                value,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
+              if (isLink)
+                LinkText(value)
+              else
+                Text(
+                  value,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
             ],
           ),
         ),
@@ -261,18 +299,5 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
       return '${widget.job.salaryMin} - ${widget.job.salaryMax}';
     }
     return '${widget.job.salaryMin ?? widget.job.salaryMax}';
-  }
-
-  Future<void> _launchUrl(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(Strings.read(context).couldNotLaunchUrl)),
-        );
-      }
-    }
   }
 }

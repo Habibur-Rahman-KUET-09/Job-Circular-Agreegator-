@@ -47,6 +47,40 @@ void main() {
     expect(pending.map((j) => j.id), ['old']);
   });
 
+  test('approveJobs publishes every given job', () async {
+    await service.approveJobs(['old', 'new']);
+    final pending = await service.watchPendingJobs().first;
+    expect(pending, isEmpty);
+    final doc = await firestore.collection('jobs').doc('old').get();
+    expect(doc.data()!['status'], 'approved');
+  });
+
+  test('submitManualJob stores a pending manual job under its generated id', () async {
+    final id = await service.submitManualJob(Job(
+      id: '',
+      title: 'Clerk',
+      company: 'Acme Ltd',
+      description: 'Filing',
+      location: 'Dhaka',
+      category: JobCategory.other,
+      source: 'ignored',
+      sourceType: JobSourceType.scraped,
+      postedDate: DateTime.utc(2020),
+      status: JobStatus.approved,
+      createdAt: DateTime.utc(2020),
+      postedBy: 'uid-1',
+    ));
+
+    final data = (await firestore.collection('jobs').doc(id).get()).data()!;
+    expect(data['id'], id);
+    expect(data['status'], 'pending');
+    expect(data['sourceType'], 'manual');
+    expect(data['source'], 'manual');
+    expect(data['postedBy'], 'uid-1');
+    final pending = await service.watchPendingJobs().first;
+    expect(pending.map((j) => j.id), contains(id));
+  });
+
   test('setJobStatus can reject a job', () async {
     await service.setJobStatus('old', JobStatus.rejected);
     final doc = await firestore.collection('jobs').doc('old').get();

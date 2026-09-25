@@ -10,7 +10,7 @@ Future<bool> showConfirmDialog(
   String? cancelLabel,
   bool isDestructive = true,
 }) async {
-  final s = Strings.of(context);
+  final s = Strings.read(context);
   final result = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(

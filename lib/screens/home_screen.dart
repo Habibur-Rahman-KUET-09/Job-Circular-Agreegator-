@@ -7,17 +7,11 @@ import '../models/job.dart';
 import '../providers/application_provider.dart';
 import '../providers/job_provider.dart';
 import '../providers/saved_job_provider.dart';
-import '../providers/user_profile_provider.dart';
 import '../services/application_service.dart';
 import '../services/auth_service.dart';
 import '../services/saved_job_service.dart';
-import '../services/user_profile_service.dart';
-import 'auth/login_screen.dart';
-import 'applications_screen.dart';
+import 'account_screen.dart';
 import 'job_details_screen.dart';
-import 'job_review_screen.dart';
-import 'saved_jobs_screen.dart';
-import 'user_profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -31,18 +25,11 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _selectedLocation;
   String? _searchTerm;
   late String userId;
-  bool _canReviewJobs = false;
 
   @override
   void initState() {
     super.initState();
     userId = AuthService.instance.currentUser?.uid ?? '';
-    AuthService.instance.getCurrentUserRole().then((role) {
-      if (!mounted) return;
-      setState(() {
-        _canReviewJobs = role == UserRole.admin || role == UserRole.moderator;
-      });
-    });
     Future.microtask(() {
       context.read<JobProvider>().fetchAllJobs();
     });
@@ -63,7 +50,9 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.account_circle),
             tooltip: s.loginAccount,
-            onPressed: _showProfileMenu,
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const AccountScreen()),
+            ),
           ),
         ],
       ),
@@ -91,16 +80,28 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 )
-              : ListView.builder(
-                  itemCount: jobs.length,
-                  padding: const EdgeInsets.all(8),
-                  itemBuilder: (context, index) {
-                    final job = jobs[index];
-                    return JobCard(
-                      job: job,
-                      onTap: () => _navigateToJobDetails(context, job),
-                    );
-                  },
+              : RefreshIndicator(
+                  onRefresh: _refresh,
+                  child: jobs.isEmpty
+                      ? ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          children: [
+                            const SizedBox(height: 120),
+                            Center(child: Text(s.noJobsFound)),
+                          ],
+                        )
+                      : ListView.builder(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          itemCount: jobs.length,
+                          padding: const EdgeInsets.all(8),
+                          itemBuilder: (context, index) {
+                            final job = jobs[index];
+                            return JobCard(
+                              job: job,
+                              onTap: () => _navigateToJobDetails(context, job),
+                            );
+                          },
+                        ),
                 ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showFilterDialog,
@@ -119,10 +120,24 @@ class _HomeScreenState extends State<HomeScreen> {
             ChangeNotifierProvider(
               create: (_) => SavedJobProvider(SavedJobService(firestore), userId),
             ),
+            ChangeNotifierProvider(
+              create: (_) => ApplicationProvider(ApplicationService(firestore), userId),
+            ),
           ],
           child: JobDetailsScreen(job: job),
         ),
       ),
+    );
+  }
+
+  Future<void> _refresh() {
+    final provider = context.read<JobProvider>();
+    final filtered = _searchTerm != null || _selectedLocation != null || _selectedCategory != null;
+    if (!filtered) return provider.fetchAllJobs();
+    return provider.searchJobs(
+      searchTerm: _searchTerm,
+      location: _selectedLocation,
+      category: _selectedCategory?.name,
     );
   }
 
@@ -147,145 +162,6 @@ class _HomeScreenState extends State<HomeScreen> {
           );
           Navigator.pop(context);
         },
-      ),
-    );
-  }
-
-  void _showProfileMenu() {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.person),
-              title: Text(Strings.of(context).myProfile),
-              onTap: () {
-                Navigator.pop(context);
-                _navigateToProfile();
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.bookmark),
-              title: Text(Strings.of(context).savedJobs),
-              onTap: () {
-                Navigator.pop(context);
-                _navigateToSavedJobs();
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.work_history),
-              title: Text(Strings.of(context).myApplications),
-              onTap: () {
-                Navigator.pop(context);
-                _navigateToApplications();
-              },
-            ),
-            if (_canReviewJobs)
-              ListTile(
-                leading: const Icon(Icons.fact_check),
-                title: Text(Strings.of(context).reviewJobs),
-                onTap: () {
-                  Navigator.pop(context);
-                  _navigateToJobReview();
-                },
-              ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: Text(Strings.of(context).logout),
-              onTap: () {
-                Navigator.pop(context);
-                _logout();
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _navigateToJobReview() async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const JobReviewScreen()),
-    );
-    if (!mounted) return;
-    context.read<JobProvider>().fetchAllJobs();
-  }
-
-  void _navigateToProfile() {
-    final firestore = FirebaseFirestore.instance;
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => MultiProvider(
-          providers: [
-            ChangeNotifierProvider(
-              create: (_) => UserProfileProvider(UserProfileService(firestore), userId),
-            ),
-          ],
-          child: const UserProfileScreen(),
-        ),
-      ),
-    );
-  }
-
-  void _navigateToSavedJobs() {
-    final firestore = FirebaseFirestore.instance;
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => MultiProvider(
-          providers: [
-            ChangeNotifierProvider(
-              create: (_) => SavedJobProvider(SavedJobService(firestore), userId),
-            ),
-          ],
-          child: const SavedJobsScreen(),
-        ),
-      ),
-    );
-  }
-
-  void _navigateToApplications() {
-    final firestore = FirebaseFirestore.instance;
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => MultiProvider(
-          providers: [
-            ChangeNotifierProvider(
-              create: (_) => ApplicationProvider(ApplicationService(firestore), userId),
-            ),
-          ],
-          child: const ApplicationsScreen(),
-        ),
-      ),
-    );
-  }
-
-  void _logout() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(Strings.of(context).confirmLogout),
-        content: Text(Strings.of(context).logoutConfirmation),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(Strings.of(context).cancel),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(context);
-              AuthService.instance.signOut().then((_) {
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                );
-              });
-            },
-            child: Text(Strings.of(context).logout),
-          ),
-        ],
       ),
     );
   }

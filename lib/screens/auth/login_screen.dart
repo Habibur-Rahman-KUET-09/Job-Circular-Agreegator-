@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../l10n/strings.dart';
+import '../../utils/auth_errors.dart';
 import '../../services/auth_service.dart';
 import '../../services/rate_limiter_service.dart';
 import '../../utils/safe_padding.dart';
@@ -34,34 +35,11 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   String _friendlyError(Strings s, FirebaseAuthException e) {
-    switch (e.code) {
-      case 'invalid-email':
-        return s.loginErrorInvalidEmail;
-      case 'user-disabled':
-        return s.loginErrorUserDisabled;
-      case 'user-not-found':
-      case 'invalid-credential':
-        return s.loginErrorUserNotFound;
-      case 'wrong-password':
-        return s.loginErrorWrongPassword;
-      case 'email-already-in-use':
-        return s.loginErrorEmailInUse;
-      case 'weak-password':
-        return s.loginErrorWeakPassword;
-      case 'network-request-failed':
-        return s.loginErrorNetwork;
-      case 'too-many-requests':
-        return s.loginErrorTooManyRequests;
-      case 'missing-google-id-token':
-        return s.loginErrorMissingGoogleToken;
-      case 'no-current-user':
-        return s.loginErrorNoCurrentUser;
-      case 'missing-password':
-        return s.loginErrorMissingPassword;
-      default:
-        return e.message ?? s.loginErrorGeneric;
-    }
+    // At sign-in, invalid-credential covers both an unknown email and a wrong password.
+    if (e.code == 'invalid-credential') return s.loginErrorUserNotFound;
+    return authErrorMessage(s, e);
   }
+
 
   Future<void> _submit(Strings s) async {
     if (!_formKey.currentState!.validate()) return;

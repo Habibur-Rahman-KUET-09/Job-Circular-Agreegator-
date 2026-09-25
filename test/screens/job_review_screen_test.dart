@@ -38,6 +38,15 @@ class _FakeJobService extends JobService {
   }
 
   @override
+  Future<void> approveJobs(List<String> jobIds) async {
+    for (final id in jobIds) {
+      statusChanges.add((id, JobStatus.approved));
+    }
+    pending.removeWhere((j) => jobIds.contains(j.id));
+    _controller.add(List.of(pending));
+  }
+
+  @override
   Future<void> setJobStatus(String jobId, JobStatus status) async {
     statusChanges.add((jobId, status));
     pending.removeWhere((j) => j.id == jobId);
@@ -90,6 +99,36 @@ void main() {
 
     expect(service.statusChanges, [('1', JobStatus.rejected)]);
     expect(find.text('Job rejected'), findsOneWidget);
+  });
+
+  testWidgets('approve all asks first, then approves every pending job', (tester) async {
+    final service = _FakeJobService([_job('1', 'Flutter Developer'), _job('2', 'Accountant')]);
+    await _pumpScreen(tester, service);
+
+    await tester.tap(find.text('Approve all'));
+    await tester.pumpAndSettle();
+    expect(find.text('Approve all jobs?'), findsOneWidget);
+    expect(service.statusChanges, isEmpty);
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Approve all'));
+    await tester.pumpAndSettle();
+
+    expect(service.statusChanges, [('1', JobStatus.approved), ('2', JobStatus.approved)]);
+    expect(find.text('2 jobs approved'), findsOneWidget);
+    expect(find.text('Approve all'), findsNothing);
+  });
+
+  testWidgets('cancelling approve all changes nothing', (tester) async {
+    final service = _FakeJobService([_job('1', 'Flutter Developer')]);
+    await _pumpScreen(tester, service);
+
+    await tester.tap(find.text('Approve all'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+
+    expect(service.statusChanges, isEmpty);
+    expect(find.text('Flutter Developer'), findsOneWidget);
   });
 
   testWidgets('shows an empty state when nothing is pending', (tester) async {

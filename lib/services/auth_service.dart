@@ -133,19 +133,50 @@ class AuthService {
     }
   }
 
-  // Delete account (permanent)
-  Future<void> deleteAccount() async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) throw Exception('No user signed in');
+  bool get isPasswordUser =>
+      _auth.currentUser?.providerData.any((p) => p.providerId == 'password') ?? false;
 
-      // Delete user profile from Firestore
-      await _firestore.collection('users').doc(user.uid).delete();
+  /// Deletes the user's Firestore data and login. Firebase requires a recent
+  /// sign-in, so password users pass their password and Google users are asked
+  /// to pick their Google account again.
+  Future<void> deleteAccount({String? currentPassword}) async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw FirebaseAuthException(code: 'no-current-user');
+    }
+    await _reauthenticate(user, currentPassword);
 
-      // Delete Firebase auth user
-      await user.delete();
-    } catch (e) {
-      throw Exception('Failed to delete account: $e');
+    final userDoc = _firestore.collection('users').doc(user.uid);
+    for (final sub in ['applications', 'savedJobs']) {
+      final docs = await userDoc.collection(sub).get();
+      for (final doc in docs.docs) {
+        await doc.reference.delete();
+      }
+    }
+    await userDoc.delete();
+    await user.delete();
+    if (_googleInitialized) {
+      await GoogleSignIn.instance.signOut();
+    }
+  }
+
+  Future<void> _reauthenticate(User user, String? currentPassword) async {
+    if (currentPassword != null) {
+      await user.reauthenticateWithCredential(
+        EmailAuthProvider.credential(email: user.email!, password: currentPassword),
+      );
+      return;
+    }
+    if (user.providerData.any((p) => p.providerId == 'google.com')) {
+      final googleSignIn = GoogleSignIn.instance;
+      if (!_googleInitialized) {
+        await googleSignIn.initialize();
+        _googleInitialized = true;
+      }
+      final account = await googleSignIn.authenticate();
+      await user.reauthenticateWithCredential(
+        GoogleAuthProvider.credential(idToken: account.authentication.idToken),
+      );
     }
   }
 
@@ -180,25 +211,13 @@ class AuthService {
     }
   }
 
-  // Change password (user must be recently authenticated)
+  /// Re-authenticates with the current password, then sets the new one.
   Future<void> changePassword(String currentPassword, String newPassword) async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) throw Exception('No user signed in');
-
-      // Re-authenticate user first
-      if (user.email != null) {
-        final credential = EmailAuthProvider.credential(
-          email: user.email!,
-          password: currentPassword,
-        );
-        await user.reauthenticateWithCredential(credential);
-      }
-
-      // Change password
-      await user.updatePassword(newPassword);
-    } catch (e) {
-      throw Exception('Failed to change password: $e');
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw FirebaseAuthException(code: 'no-current-user');
     }
+    await _reauthenticate(user, currentPassword);
+    await user.updatePassword(newPassword);
   }
 }

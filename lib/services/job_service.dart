@@ -237,6 +237,35 @@ class JobService {
     return _jobsCollection.doc(jobId).update({'status': status.name});
   }
 
+  /// Saves a hand-entered job; it stays pending until an admin or moderator
+  /// approves it.
+  Future<String> submitManualJob(Job job) async {
+    final ref = _jobsCollection.doc();
+    final now = DateTime.now();
+    await ref.set(job
+        .copyWith(
+          id: ref.id,
+          status: JobStatus.pending,
+          sourceType: JobSourceType.manual,
+          source: 'manual',
+          postedDate: now,
+          createdAt: now,
+        )
+        .toJson());
+    return ref.id;
+  }
+
+  Future<void> approveJobs(List<String> jobIds) async {
+    // Firestore caps a batch at 500 writes.
+    for (var i = 0; i < jobIds.length; i += 450) {
+      final batch = _firestore.batch();
+      for (final id in jobIds.skip(i).take(450)) {
+        batch.update(_jobsCollection.doc(id), {'status': JobStatus.approved.name});
+      }
+      await batch.commit();
+    }
+  }
+
   // Watch specific job in real-time
   Stream<Job?> watchJobById(String jobId) {
     return _jobsCollection.doc(jobId).snapshots().map((snapshot) {

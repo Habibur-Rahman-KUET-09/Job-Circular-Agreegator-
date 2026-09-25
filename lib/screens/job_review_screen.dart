@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import '../l10n/strings.dart';
 import '../models/job.dart';
 import '../services/job_service.dart';
+import '../utils/open_link.dart';
+import '../widgets/confirm_dialog.dart';
 
 class JobReviewScreen extends StatefulWidget {
   final JobService? jobService;
@@ -17,7 +19,9 @@ class JobReviewScreen extends StatefulWidget {
 class _JobReviewScreenState extends State<JobReviewScreen> {
   late final JobService _jobService =
       widget.jobService ?? JobService(FirebaseFirestore.instance);
+  late final Stream<List<Job>> _pendingJobs = _jobService.watchPendingJobs();
   final Set<String> _busyIds = {};
+  bool _approvingAll = false;
 
   Future<void> _setStatus(Job job, JobStatus status) async {
     final s = Strings.read(context);
@@ -36,39 +40,76 @@ class _JobReviewScreenState extends State<JobReviewScreen> {
     }
   }
 
+  Future<void> _approveAll(List<Job> jobs) async {
+    final s = Strings.read(context);
+    final confirmed = await showConfirmDialog(
+      context,
+      title: s.approveAllTitle,
+      message: s.approveAllMessage(jobs.length),
+      confirmLabel: s.approveAll,
+      isDestructive: false,
+    );
+    if (!confirmed || !mounted) return;
+    setState(() => _approvingAll = true);
+    try {
+      await _jobService.approveJobs([for (final job in jobs) job.id]);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.allJobsApproved(jobs.length))));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.errorOccurred)));
+    } finally {
+      if (mounted) setState(() => _approvingAll = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = Strings.of(context);
-    return Scaffold(
-      appBar: AppBar(title: Text(s.reviewJobs)),
-      body: StreamBuilder<List<Job>>(
-        stream: _jobService.watchPendingJobs(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(child: Text(s.errorOccurred));
-          }
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final jobs = snapshot.data!;
-          if (jobs.isEmpty) {
-            return Center(child: Text(s.noPendingJobs));
-          }
-          return ListView.builder(
-            padding: const EdgeInsets.all(8),
-            itemCount: jobs.length,
-            itemBuilder: (context, index) {
-              final job = jobs[index];
-              return _PendingJobCard(
-                job: job,
-                busy: _busyIds.contains(job.id),
-                onApprove: () => _setStatus(job, JobStatus.approved),
-                onReject: () => _setStatus(job, JobStatus.rejected),
-              );
-            },
-          );
-        },
-      ),
+    return StreamBuilder<List<Job>>(
+      stream: _pendingJobs,
+      builder: (context, snapshot) {
+        final jobs = snapshot.data ?? const <Job>[];
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(s.reviewJobs),
+            actions: [
+              if (jobs.isNotEmpty)
+                TextButton.icon(
+                  onPressed: _approvingAll ? null : () => _approveAll(jobs),
+                  icon: const Icon(Icons.done_all),
+                  label: Text(s.approveAll),
+                ),
+            ],
+          ),
+          body: _buildBody(s, snapshot, jobs),
+        );
+      },
+    );
+  }
+
+  Widget _buildBody(Strings s, AsyncSnapshot<List<Job>> snapshot, List<Job> jobs) {
+    if (snapshot.hasError) {
+      return Center(child: Text(s.errorOccurred));
+    }
+    if (!snapshot.hasData) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (jobs.isEmpty) {
+      return Center(child: Text(s.noPendingJobs));
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.all(8),
+      itemCount: jobs.length,
+      itemBuilder: (context, index) {
+        final job = jobs[index];
+        return _PendingJobCard(
+          job: job,
+          busy: _approvingAll || _busyIds.contains(job.id),
+          onApprove: () => _setStatus(job, JobStatus.approved),
+          onReject: () => _setStatus(job, JobStatus.rejected),
+        );
+      },
     );
   }
 }
@@ -118,9 +159,9 @@ class _PendingJobCard extends StatelessWidget {
                 style: theme.textTheme.bodySmall,
               ),
             ],
-            if (job.applyLink != null) ...[
+            if (isWebLink(job.applyLink)) ...[
               const SizedBox(height: 4),
-              SelectableText(job.applyLink!, style: theme.textTheme.bodySmall),
+              LinkText(job.applyLink!, style: theme.textTheme.bodySmall),
             ],
             const SizedBox(height: 12),
             Row(

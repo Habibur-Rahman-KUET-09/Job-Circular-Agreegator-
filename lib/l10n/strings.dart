@@ -167,6 +167,12 @@ class Strings {
   String get reject => _t('প্রত্যাখ্যান', 'Reject');
   String get jobApproved => _t('চাকরি অনুমোদিত হয়েছে', 'Job approved');
   String get jobRejected => _t('চাকরি বাতিল করা হয়েছে', 'Job rejected');
+  String get approveAll => _t('সব অনুমোদন', 'Approve all');
+  String get approveAllTitle => _t('সব চাকরি অনুমোদন করবেন?', 'Approve all jobs?');
+  String approveAllMessage(int n) => _t(
+      '$nটি চাকরি একসাথে অনুমোদিত হবে এবং সবার feed-এ দেখাবে।',
+      '$n jobs will be approved at once and appear in everyone\'s feed.');
+  String allJobsApproved(int n) => _t('$nটি চাকরি অনুমোদিত হয়েছে', '$n jobs approved');
   String sourceLabel(String source) => _t('উৎস: $source', 'Source: $source');
 
   // ---- Enum labels ----
@@ -222,4 +228,81 @@ class Strings {
   String get quietHoursStartTitle => _t('নিরব সময় শুরু', 'Quiet hours start');
   String get quietHoursEndTitle => _t('নিরব সময় শেষ', 'Quiet hours end');
   String get done => _t('সম্পন্ন', 'Done');
+
+  // ---- Account screen ----
+  String get myAccount => _t('আমার অ্যাকাউন্ট', 'My account');
+  String get changePassword => _t('পাসওয়ার্ড পরিবর্তন', 'Change password');
+  String get currentPassword => _t('বর্তমান পাসওয়ার্ড', 'Current password');
+  String get newPassword => _t('নতুন পাসওয়ার্ড', 'New password');
+  String get passwordChanged => _t('পাসওয়ার্ড পরিবর্তন হয়েছে', 'Password changed');
+  String get language => _t('ভাষা', 'Language');
+  String get languageName => _t('বাংলা', 'English');
+  String get howItWorks => _t('কীভাবে কাজ করে', 'How it works');
+  String get sopTitle => _t('বিস্তারিত নিয়মকানুন (SOP)', 'Detailed guide (SOP)');
+  String get deleteAccount => _t('অ্যাকাউন্ট মুছে ফেলুন', 'Delete account');
+  String get deleteAccountSubtitle =>
+      _t('আপনার প্রোফাইল ও লগইন স্থায়ীভাবে মুছে যাবে', 'Your profile and login will be permanently deleted');
+  String get deleteAccountConfirmTitle => _t('অ্যাকাউন্ট মুছে ফেলবেন?', 'Delete your account?');
+  String get deleteAccountConfirmMessage => _t(
+      'আপনার প্রোফাইল, সংরক্ষিত চাকরি ও আবেদনের তালিকা স্থায়ীভাবে মুছে যাবে। এটি আর ফেরত আনা যাবে না।',
+      'Your profile, saved jobs and applications will be permanently deleted. This cannot be undone.');
+  String get confirmWithPassword => _t('নিশ্চিত করতে পাসওয়ার্ড দিন', 'Enter your password to confirm');
+  String get reloginRequired =>
+      _t('নিরাপত্তার জন্য একবার লগআউট করে আবার লগইন করুন, তারপর চেষ্টা করুন।',
+          'For security, sign out and sign in again, then retry.');
+  String get markApplied => _t('আমার আবেদনে যোগ করুন', 'Add to my applications');
+  String get alreadyInApplications => _t('আমার আবেদনে আছে', 'In my applications');
+  String get addedToApplications => _t('আমার আবেদনে যোগ হয়েছে', 'Added to my applications');
+  String get noJobsFound => _t('কোনো চাকরি পাওয়া যায়নি। নতুন চাকরি দেখতে নিচে টানুন।', 'No jobs found. Pull down to refresh.');
+  String get addJob => _t('চাকরি যোগ করুন', 'Add job');
+  String get enterValidNumber => _t('সঠিক সংখ্যা দিন', 'Enter a valid number');
+  String get requiredField => _t('এই ঘরটি পূরণ করুন', 'This field is required');
+
+  // ---- How it works ----
+  List<(String, String)> get howItWorksSteps => [
+        (
+          _t('চাকরি আসে প্রতিদিন', 'Jobs arrive every day'),
+          _t('প্রতিদিন সকাল ৬টায় bdjobs থেকে নতুন চাকরি স্বয়ংক্রিয়ভাবে যোগ হয় এবং সরাসরি তালিকায় দেখায়।',
+              'Every day at 6 AM new jobs are collected from bdjobs and appear in the list right away.'),
+        ),
+        (
+          _t('খুঁজুন ও ফিল্টার করুন', 'Search and filter'),
+          _t('উপরের ফিল্টার বাটন দিয়ে শিরোনাম, বিভাগ বা এলাকা অনুযায়ী চাকরি খুঁজুন।',
+              'Use the filter button at the top to search by title, category or location.'),
+        ),
+        (
+          _t('বিস্তারিত দেখে আবেদন করুন', 'Open a job and apply'),
+          _t('চাকরিতে ট্যাপ করলে বিস্তারিত আসবে। "এখনই আবেদন করুন" চাপলে মূল বিজ্ঞপ্তি অ্যাপের ভেতরেই খুলবে।',
+              'Tap a job for details. "Apply now" opens the original posting inside the app.'),
+        ),
+        (
+          _t('সংরক্ষণ করুন', 'Save jobs'),
+          _t('পরে দেখার জন্য চাকরি সংরক্ষণ করুন; সব পাবেন অ্যাকাউন্ট › সংরক্ষিত চাকরি-তে।',
+              'Save jobs for later; find them under Account › Saved jobs.'),
+        ),
+        (
+          _t('আবেদনের হিসাব রাখুন', 'Track applications'),
+          _t('অ্যাকাউন্ট › আমার আবেদন-এ প্রতিটি আবেদনের অবস্থা (আবেদন করা, সাক্ষাৎকার, নির্বাচিত) হালনাগাদ করুন।',
+              'Under Account › My applications, update each application\'s status (applied, interview, selected).'),
+        ),
+        (
+          _t('হাতে যোগ করা চাকরি যাচাই হয়', 'Hand-entered jobs are reviewed'),
+          _t('রিক্রুটার বা মডারেটর হাতে চাকরি যোগ করলে অ্যাডমিন/মডারেটর অনুমোদন দেওয়ার পরই সবাই দেখতে পায়।',
+              'Jobs added by hand by a recruiter or moderator appear for everyone only after an admin or moderator approves them.'),
+        ),
+      ];
+
+  // ---- Add job form ----
+  String get jobTitleLabel => _t('পদের নাম', 'Job title');
+  String get companyLabel => _t('প্রতিষ্ঠান', 'Company');
+  String get descriptionLabel => _t('বিবরণ', 'Description');
+  String get jobTypeLabelText => _t('চাকরির ধরন', 'Job type');
+  String get applyLinkHint => _t('https:// দিয়ে শুরু হওয়া লিংক', 'A link starting with https://');
+  String get enterValidLink => _t('সঠিক লিংক দিন (https://...)', 'Enter a valid link (https://...)');
+  String get pickDeadline => _t('শেষ তারিখ বেছে নিন', 'Pick a deadline');
+  String get salaryLabel => _t('বেতন (ঐচ্ছিক)', 'Salary (optional)');
+  String get minExperienceLabel => _t('ন্যূনতম অভিজ্ঞতা (বছর)', 'Min experience (years)');
+  String get submitForReview => _t('যাচাইয়ের জন্য জমা দিন', 'Submit for review');
+  String get jobSubmittedForReview =>
+      _t('চাকরি জমা হয়েছে; অনুমোদনের পর সবাই দেখতে পাবে', 'Job submitted; everyone will see it once approved');
 }
