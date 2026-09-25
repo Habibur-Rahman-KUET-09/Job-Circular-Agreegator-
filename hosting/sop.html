@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>সন্ধান — বিস্তারিত নিয়মকানুন (SOP)</title>
+<link rel="icon" href="/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #00695C;
+    --primary-soft: #E0F2EF;
+    --bg: #F2F5F4;
+    --card: #FFFFFF;
+    --text: #1B2624;
+    --muted: #5B6966;
+    --accent: #FFC857;
+    --border: #DCE5E3;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --primary: #4DB6AC; --primary-soft: #16302C; --bg: #0F1716; --card: #18221F;
+      --text: #E6EEEC; --muted: #9DB0AC; --border: #26332F;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Noto Sans Bengali", "Segoe UI", Roboto, sans-serif; line-height: 1.7;
+  }
+  header {
+    background: var(--primary); color: #fff; padding: 16px;
+    position: sticky; top: 0; z-index: 2;
+  }
+  .bar { max-width: 760px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
+  .bar img { width: 36px; height: 36px; border-radius: 9px; }
+  .bar h1 { font-size: 1.1rem; margin: 0; flex: 1; min-width: 0; font-weight: 600; }
+  .lang {
+    border: 1px solid rgba(255,255,255,.6); background: transparent; color: #fff;
+    border-radius: 999px; padding: 4px 14px; font: inherit; font-size: .9rem; cursor: pointer;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 16px; overflow-wrap: anywhere; }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 18px 20px; margin: 12px 0;
+  }
+  h2 { font-size: 1.15rem; margin: 0 0 8px; color: var(--primary); }
+  h3 { font-size: 1rem; margin: 14px 0 4px; }
+  ol, ul { padding-left: 1.3em; margin: 6px 0; }
+  li { margin: 4px 0; }
+  .quick li { margin: 8px 0; }
+  .tag {
+    display: inline-block; background: var(--primary-soft); color: var(--primary);
+    border-radius: 6px; padding: 0 8px; font-size: .85rem; font-weight: 600;
+  }
+  .path { font-weight: 600; }
+  .note { border-left: 4px solid var(--accent); background: var(--primary-soft); padding: 8px 12px; border-radius: 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; }
+  nav a { color: var(--primary); text-decoration: none; }
+  nav li { margin: 2px 0; }
+  footer { text-align: center; color: var(--muted); font-size: .85rem; padding: 16px 0 32px; }
+  [data-lang="en"] .bn, [data-lang="bn"] .en { display: none; }
+</style>
+</head>
+<body data-lang="bn">
+<header>
+  <div class="bar">
+    <img src="/logo.png" alt="">
+    <h1><span class="bn">সন্ধান — বিস্তারিত নিয়মকানুন</span><span class="en">Shondhan — Detailed guide</span></h1>
+    <button class="lang" id="lang" type="button">English</button>
+  </div>
+</header>
+<main>
+
+<section class="card quick">
+  <h2><span class="bn">এক নজরে</span><span class="en">At a glance</span></h2>
+  <ol>
+    <li class="bn">ইমেইল অথবা Google দিয়ে অ্যাকাউন্ট খুলুন।</li>
+    <li class="en">Create an account with email or Google.</li>
+    <li class="bn">প্রতিদিন সকাল ৬টায় নতুন চাকরি নিজে থেকেই তালিকায় আসে; নিচে টেনে তালিকা হালনাগাদ করুন।</li>
+    <li class="en">New jobs arrive automatically every day at 6 AM; pull down to refresh the list.</li>
+    <li class="bn">ফিল্টার বাটন দিয়ে শিরোনাম, বিভাগ বা এলাকা অনুযায়ী খুঁজুন।</li>
+    <li class="en">Use the filter button to search by title, category or location.</li>
+    <li class="bn">চাকরিতে ট্যাপ করে বিস্তারিত দেখুন, “এখনই আবেদন করুন” চেপে মূল বিজ্ঞপ্তিতে আবেদন করুন।</li>
+    <li class="en">Tap a job for details and press “Apply now” to apply on the original posting.</li>
+    <li class="bn">পছন্দের চাকরি সংরক্ষণ করুন এবং আবেদনগুলো “আমার আবেদন”-এ রেখে অবস্থা হালনাগাদ করুন।</li>
+    <li class="en">Save jobs you like and keep your applications in “My applications” with their status.</li>
+  </ol>
+</section>
+
+<nav class="card">
+  <h2><span class="bn">সূচিপত্র</span><span class="en">Contents</span></h2>
+  <ol>
+    <li><a href="#account"><span class="bn">অ্যাকাউন্ট</span><span class="en">Account</span></a></li>
+    <li><a href="#find"><span class="bn">চাকরি খোঁজা</span><span class="en">Finding jobs</span></a></li>
+    <li><a href="#apply"><span class="bn">বিস্তারিত দেখা ও আবেদন</span><span class="en">Job details and applying</span></a></li>
+    <li><a href="#save"><span class="bn">চাকরি সংরক্ষণ</span><span class="en">Saving jobs</span></a></li>
+    <li><a href="#track"><span class="bn">আবেদনের হিসাব রাখা</span><span class="en">Tracking applications</span></a></li>
+    <li><a href="#profile"><span class="bn">প্রোফাইল ও ভাষা</span><span class="en">Profile and language</span></a></li>
+    <li><a href="#source"><span class="bn">চাকরি কোথা থেকে আসে</span><span class="en">Where jobs come from</span></a></li>
+    <li><a href="#add"><span class="bn">হাতে চাকরি যোগ করা</span><span class="en">Adding a job by hand</span></a></li>
+    <li><a href="#review"><span class="bn">চাকরি যাচাই</span><span class="en">Reviewing jobs</span></a></li>
+    <li><a href="#roles"><span class="bn">রোল ও অনুমতি</span><span class="en">Roles and permissions</span></a></li>
+    <li><a href="#help"><span class="bn">সমস্যা ও সমাধান</span><span class="en">Troubleshooting</span></a></li>
+  </ol>
+</nav>
+
+<section class="card" id="account">
+  <h2><span class="bn">১. অ্যাকাউন্ট</span><span class="en">1. Account</span></h2>
+  <h3 class="bn">অ্যাকাউন্ট খোলা ও লগইন</h3>
+  <h3 class="en">Signing up and signing in</h3>
+  <ol class="bn">
+    <li>অ্যাপ খুলে ইমেইল ও পাসওয়ার্ড দিন, অথবা “Google দিয়ে চালিয়ে যান” চাপুন।</li>
+    <li>নতুন হলে “নতুন এখানে? অ্যাকাউন্ট তৈরি করুন” চাপুন। পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের এবং অন্তত একটি সংখ্যাসহ হতে হবে।</li>
+    <li>পাসওয়ার্ড ভুলে গেলে ইমেইল লিখে “পাসওয়ার্ড ভুলে গেছেন?” চাপুন; রিসেট লিংক ইমেইলে যাবে।</li>
+    <li>বারবার ভুল পাসওয়ার্ড দিলে নিরাপত্তার জন্য কিছুক্ষণ লগইন বন্ধ থাকে; নির্দেশিত সময় পরে আবার চেষ্টা করুন।</li>
+  </ol>
+  <ol class="en">
+    <li>Open the app and enter email and password, or press “Continue with Google”.</li>
+    <li>New here? Press “Create an account”. Passwords need at least 8 characters including a digit.</li>
+    <li>Forgot your password? Type your email and press “Forgot password?”; a reset link is emailed to you.</li>
+    <li>After repeated wrong passwords, sign-in is paused for a while for security; try again after the stated time.</li>
+  </ol>
+  <h3 class="bn">অ্যাকাউন্ট পেজ</h3>
+  <h3 class="en">The account page</h3>
+  <p class="bn">হোম স্ক্রিনের উপরে ডানদিকের আইকন চাপলে <span class="path">আমার অ্যাকাউন্ট</span> খোলে। এখানে:</p>
+  <p class="en">The icon at the top right of the home screen opens <span class="path">My account</span>. From there:</p>
+  <ul class="bn">
+    <li><b>পাসওয়ার্ড পরিবর্তন</b> — বর্তমান ও নতুন পাসওয়ার্ড দিন (শুধু ইমেইল দিয়ে খোলা অ্যাকাউন্টে দেখায়)।</li>
+    <li><b>ভাষা</b> — চাপলে বাংলা ও ইংরেজির মধ্যে বদলায়।</li>
+    <li><b>অ্যাকাউন্ট মুছে ফেলুন</b> — প্রোফাইল, সংরক্ষিত চাকরি ও আবেদনের তালিকা স্থায়ীভাবে মুছে যায়। নিশ্চিত করতে পাসওয়ার্ড দিতে হয়, অথবা Google অ্যাকাউন্ট আবার বেছে নিতে হয়।</li>
+    <li><b>লগআউট</b> — নিশ্চিত করলে লগইন পেজে ফিরে যাবেন।</li>
+  </ul>
+  <ul class="en">
+    <li><b>Change password</b> — enter the current and new password (shown only for email accounts).</li>
+    <li><b>Language</b> — tap to switch between Bangla and English.</li>
+    <li><b>Delete account</b> — permanently removes your profile, saved jobs and applications. Confirm with your password, or by choosing your Google account again.</li>
+    <li><b>Logout</b> — after confirming you return to the sign-in page.</li>
+  </ul>
+</section>
+
+<section class="card" id="find">
+  <h2><span class="bn">২. চাকরি খোঁজা</span><span class="en">2. Finding jobs</span></h2>
+  <ol class="bn">
+    <li>হোম স্ক্রিনে নতুন চাকরিগুলো আগে দেখায়। প্রতিটি কার্ডে পদ, প্রতিষ্ঠান, বিভাগ, এলাকা ও শেষ তারিখ থাকে।</li>
+    <li>নতুন চাকরি দেখতে তালিকাটি নিচের দিকে টানুন (pull to refresh)।</li>
+    <li>নিচে ডানদিকের <b>ফিল্টার</b> বাটন চেপে শব্দ দিয়ে খুঁজুন, বিভাগ বা এলাকা বেছে নিন, তারপর প্রয়োগ করুন।</li>
+  </ol>
+  <ol class="en">
+    <li>The home screen lists the newest jobs first. Each card shows the title, company, category, location and deadline.</li>
+    <li>Pull the list down to load new jobs.</li>
+    <li>Press the <b>filter</b> button at the bottom right to search by keyword, category or location, then apply.</li>
+  </ol>
+</section>
+
+<section class="card" id="apply">
+  <h2><span class="bn">৩. বিস্তারিত দেখা ও আবেদন</span><span class="en">3. Job details and applying</span></h2>
+  <ol class="bn">
+    <li>কোনো চাকরিতে ট্যাপ করলে বিবরণ, অভিজ্ঞতা, বেতন, শেষ তারিখ ও উৎস দেখায়।</li>
+    <li><b>এখনই আবেদন করুন</b> চাপলে মূল বিজ্ঞপ্তি (যেমন bdjobs) অ্যাপের ভেতরের ব্রাউজারে খোলে। “আবেদন লিঙ্ক”-এর লেখাটিতে চাপলেও একই পেজ খোলে।</li>
+    <li>আবেদন মূল ওয়েবসাইটেই করতে হয়; bdjobs-এ আবেদনের জন্য তাদের অ্যাকাউন্ট লাগতে পারে।</li>
+    <li>আবেদন শেষে ফিরে এসে <b>আমার আবেদনে যোগ করুন</b> চাপুন, যাতে পরে অবস্থা হালনাগাদ করতে পারেন।</li>
+  </ol>
+  <ol class="en">
+    <li>Tap a job to see its description, experience, salary, deadline and source.</li>
+    <li><b>Apply now</b> opens the original posting (for example on bdjobs) in the in-app browser. Tapping the “Apply link” text opens it too.</li>
+    <li>You apply on the original website; bdjobs may ask you to sign in to their site.</li>
+    <li>When you are done, come back and press <b>Add to my applications</b> so you can track it.</li>
+  </ol>
+</section>
+
+<section class="card" id="save">
+  <h2><span class="bn">৪. চাকরি সংরক্ষণ</span><span class="en">4. Saving jobs</span></h2>
+  <ol class="bn">
+    <li>চাকরির পেজে উপরের বুকমার্ক আইকন বা <b>চাকরি সংরক্ষণ করুন</b> বাটন চাপুন।</li>
+    <li>সব সংরক্ষিত চাকরি পাবেন <span class="path">অ্যাকাউন্ট › সংরক্ষিত চাকরি</span>-তে; সেখান থেকে সরিয়েও দিতে পারেন।</li>
+  </ol>
+  <ol class="en">
+    <li>On a job page, press the bookmark icon at the top or <b>Save job</b>.</li>
+    <li>Find all saved jobs under <span class="path">Account › Saved jobs</span>, where you can also remove them.</li>
+  </ol>
+</section>
+
+<section class="card" id="track">
+  <h2><span class="bn">৫. আবেদনের হিসাব রাখা</span><span class="en">5. Tracking applications</span></h2>
+  <ol class="bn">
+    <li><span class="path">অ্যাকাউন্ট › আমার আবেদন</span> খুলুন। উপরের ট্যাব দিয়ে অবস্থা অনুযায়ী দেখুন: সব, আবেদন করা হয়েছে, সাক্ষাৎকার হয়েছে, নির্বাচিত, প্রত্যাখ্যাত।</li>
+    <li>কোনো আবেদনে <b>স্থিতি আপডেট করুন</b> চেপে নতুন অবস্থা বেছে নিন।</li>
+  </ol>
+  <ol class="en">
+    <li>Open <span class="path">Account › My applications</span>. Use the tabs to filter by status: all, applied, interviewed, selected, rejected.</li>
+    <li>Press <b>Update status</b> on an application to set its new status.</li>
+  </ol>
+</section>
+
+<section class="card" id="profile">
+  <h2><span class="bn">৬. প্রোফাইল ও ভাষা</span><span class="en">6. Profile and language</span></h2>
+  <ul class="bn">
+    <li><span class="path">অ্যাকাউন্ট › আমার প্রোফাইল</span>-এ নাম, ফোন, বর্তমান পদ, অভিজ্ঞতা ও দক্ষতা (কমা দিয়ে আলাদা করে) লিখে সংরক্ষণ করুন।</li>
+    <li>ভাষা বদলাতে <span class="path">অ্যাকাউন্ট › ভাষা</span> চাপুন; অ্যাপের সব লেখা সঙ্গে সঙ্গে বদলে যায়।</li>
+  </ul>
+  <ul class="en">
+    <li>Under <span class="path">Account › My profile</span>, enter your name, phone, current position, experience and skills (comma-separated), then save.</li>
+    <li>Tap <span class="path">Account › Language</span> to switch language; the whole app changes immediately.</li>
+  </ul>
+</section>
+
+<section class="card" id="source">
+  <h2><span class="bn">৭. চাকরি কোথা থেকে আসে</span><span class="en">7. Where jobs come from</span></h2>
+  <ul class="bn">
+    <li>প্রতিদিন সকাল ৬টায় (ঢাকা সময়) bdjobs.com-এর সবচেয়ে নতুন চাকরিগুলো স্বয়ংক্রিয়ভাবে সংগ্রহ হয়।</li>
+    <li>এভাবে আসা চাকরি <span class="tag">যাচাই ছাড়াই</span> সরাসরি তালিকায় দেখায়।</li>
+    <li>একই চাকরি দ্বিতীয়বার যোগ হয় না, আর আগে বাতিল করা চাকরি আবার ফিরে আসে না।</li>
+    <li>হাতে যোগ করা চাকরি আলাদা নিয়মে চলে — নিচের ৮ ও ৯ নম্বর অংশ দেখুন।</li>
+  </ul>
+  <ul class="en">
+    <li>Every day at 6 AM (Dhaka time) the newest jobs on bdjobs.com are collected automatically.</li>
+    <li>These jobs appear in the list right away, <span class="tag">without review</span>.</li>
+    <li>The same job is never added twice, and a job that was rejected does not come back.</li>
+    <li>Jobs added by hand follow different rules — see sections 8 and 9.</li>
+  </ul>
+</section>
+
+<section class="card" id="add">
+  <h2><span class="bn">৮. হাতে চাকরি যোগ করা</span><span class="en">8. Adding a job by hand</span></h2>
+  <p><span class="tag bn">রিক্রুটার, মডারেটর, অ্যাডমিন</span><span class="tag en">Recruiter, moderator, admin</span></p>
+  <ol class="bn">
+    <li><span class="path">অ্যাকাউন্ট › চাকরি যোগ করুন</span> খুলুন।</li>
+    <li>পদের নাম, প্রতিষ্ঠান, এলাকা ও বিবরণ অবশ্যই দিন। বিভাগ, চাকরির ধরন, শেষ তারিখ, আবেদন লিংক (https:// দিয়ে শুরু), বেতন ও ন্যূনতম অভিজ্ঞতা ঐচ্ছিক।</li>
+    <li>রিক্রুটারের ক্ষেত্রে প্রতিষ্ঠানের নাম নির্দিষ্ট থাকে — শুধু নিজের প্রতিষ্ঠানের চাকরি দেওয়া যায়।</li>
+    <li><b>যাচাইয়ের জন্য জমা দিন</b> চাপুন। চাকরিটি <span class="tag">অপেক্ষমাণ</span> অবস্থায় জমা হয় এবং অনুমোদনের আগে কেউ দেখতে পায় না।</li>
+  </ol>
+  <ol class="en">
+    <li>Open <span class="path">Account › Add job</span>.</li>
+    <li>Title, company, location and description are required. Category, job type, deadline, apply link (starting with https://), salary and minimum experience are optional.</li>
+    <li>For recruiters the company is fixed — they can only post jobs for their own company.</li>
+    <li>Press <b>Submit for review</b>. The job is saved as <span class="tag">pending</span> and nobody sees it until it is approved.</li>
+  </ol>
+</section>
+
+<section class="card" id="review">
+  <h2><span class="bn">৯. চাকরি যাচাই</span><span class="en">9. Reviewing jobs</span></h2>
+  <p><span class="tag bn">মডারেটর, অ্যাডমিন</span><span class="tag en">Moderator, admin</span></p>
+  <ol class="bn">
+    <li><span class="path">অ্যাকাউন্ট › চাকরি যাচাই</span> খুলুন। অপেক্ষমাণ সব চাকরি এখানে আসে।</li>
+    <li>প্রতিটি কার্ডে বিবরণ ও আবেদন লিংক দেখে যাচাই করুন (লিংকে চাপলে অ্যাপের ভেতরেই খোলে)।</li>
+    <li><b>অনুমোদন</b> চাপলে চাকরিটি সবার তালিকায় দেখায়; <b>প্রত্যাখ্যান</b> চাপলে বাদ যায়।</li>
+    <li>একসাথে সব অনুমোদন দিতে উপরের <b>সব অনুমোদন</b> চাপুন এবং নিশ্চিত করুন।</li>
+  </ol>
+  <ol class="en">
+    <li>Open <span class="path">Account › Review jobs</span>. All pending jobs appear here.</li>
+    <li>Check each card's description and apply link (tapping the link opens it inside the app).</li>
+    <li><b>Approve</b> publishes the job to everyone's list; <b>Reject</b> removes it.</li>
+    <li>To approve everything at once, press <b>Approve all</b> at the top and confirm.</li>
+  </ol>
+  <p class="note bn">রিক্রুটার নিজের যোগ করা চাকরি সম্পাদনা করতে পারেন, কিন্তু নিজে অনুমোদন দিতে পারেন না।</p>
+  <p class="note en">Recruiters can edit jobs they added but cannot approve them.</p>
+</section>
+
+<section class="card" id="roles">
+  <h2><span class="bn">১০. রোল ও অনুমতি</span><span class="en">10. Roles and permissions</span></h2>
+  <table class="bn">
+    <tr><th>রোল</th><th>যা করতে পারেন</th></tr>
+    <tr><td>ব্যবহারকারী</td><td>চাকরি খোঁজা, আবেদন, সংরক্ষণ, আবেদনের হিসাব, প্রোফাইল</td></tr>
+    <tr><td>রিক্রুটার</td><td>ব্যবহারকারীর সব কিছু + নিজের প্রতিষ্ঠানের চাকরি যোগ ও সম্পাদনা (অনুমোদন সাপেক্ষে)</td></tr>
+    <tr><td>মডারেটর</td><td>চাকরি যোগ করা + যেকোনো চাকরি অনুমোদন বা প্রত্যাখ্যান</td></tr>
+    <tr><td>অ্যাডমিন</td><td>মডারেটরের সব কিছু; রোল নির্ধারণ করেন অ্যাপের মালিক</td></tr>
+  </table>
+  <table class="en">
+    <tr><th>Role</th><th>Can do</th></tr>
+    <tr><td>User</td><td>Find, apply to, save and track jobs; edit profile</td></tr>
+    <tr><td>Recruiter</td><td>Everything a user can + add and edit jobs for their own company (subject to approval)</td></tr>
+    <tr><td>Moderator</td><td>Add jobs + approve or reject any job</td></tr>
+    <tr><td>Admin</td><td>Everything a moderator can; roles are assigned by the app owner</td></tr>
+  </table>
+  <p class="bn">রোল দেন অ্যাডমিন: GitHub রিপোজিটরির <b>Actions › Set user role</b>-এ ব্যবহারকারীর ইমেইল ও রোল দিয়ে চালান। নতুন রোল পেতে ব্যবহারকারীকে অ্যাপ বন্ধ করে আবার খুলতে হয়।</p>
+  <p class="en">An admin assigns roles by running <b>Actions › Set user role</b> in the GitHub repository with the user's email and role. The user then reopens the app to get the new role.</p>
+</section>
+
+<section class="card" id="help">
+  <h2><span class="bn">১১. সমস্যা ও সমাধান</span><span class="en">11. Troubleshooting</span></h2>
+  <ul class="bn">
+    <li><b>নতুন চাকরি দেখছি না</b> — তালিকা নিচে টানুন। সংগ্রহ হয় দিনে একবার, সকাল ৬টায়।</li>
+    <li><b>Google দিয়ে লগইন হচ্ছে না</b> — ইন্টারনেট সংযোগ দেখুন এবং অ্যাপের সর্বশেষ সংস্করণ ব্যবহার করুন।</li>
+    <li><b>আবেদন লিংক খুলছে না</b> — ফোনে Chrome চালু আছে কিনা দেখুন; না হলে অন্য ব্রাউজারে খোলে।</li>
+    <li><b>“চাকরি যাচাই” দেখাচ্ছে না</b> — আপনার রোল মডারেটর বা অ্যাডমিন কিনা অ্যাডমিনকে জিজ্ঞেস করুন, তারপর অ্যাপ বন্ধ করে আবার খুলুন।</li>
+    <li><b>অ্যাকাউন্ট মুছতে পারছি না</b> — নিরাপত্তার জন্য একবার লগআউট করে আবার লগইন করুন, তারপর চেষ্টা করুন।</li>
+  </ul>
+  <ul class="en">
+    <li><b>I don't see new jobs</b> — pull the list down. Jobs are collected once a day at 6 AM.</li>
+    <li><b>Google sign-in fails</b> — check your internet connection and use the latest version of the app.</li>
+    <li><b>The apply link won't open</b> — make sure Chrome is enabled on the phone; otherwise it opens in another browser.</li>
+    <li><b>“Review jobs” is missing</b> — ask an admin whether you are a moderator or admin, then reopen the app.</li>
+    <li><b>I can't delete my account</b> — for security, sign out and back in, then try again.</li>
+  </ul>
+</section>
+
+<footer><span class="bn">সন্ধান — চাকরির সন্ধান, এক জায়গায়</span><span class="en">Shondhan — every job circular in one place</span></footer>
+</main>
+<script>
+  (function () {
+    var body = document.body, button = document.getElementById('lang');
+    function apply(lang) {
+      body.setAttribute('data-lang', lang);
+      document.documentElement.lang = lang;
+      button.textContent = lang === 'bn' ? 'English' : 'বাংলা';
+      try { localStorage.setItem('sop-lang', lang); } catch (e) {}
+    }
+    var saved = null;
+    try { saved = localStorage.getItem('sop-lang'); } catch (e) {}
+    var fromUrl = new URLSearchParams(location.search).get('lang');
+    apply(fromUrl === 'en' || fromUrl === 'bn' ? fromUrl : (saved || 'bn'));
+    button.addEventListener('click', function () {
+      apply(body.getAttribute('data-lang') === 'bn' ? 'en' : 'bn');
+    });
+  })();
+</script>
+</body>
+</html>

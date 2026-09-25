@@ -25,5 +25,13 @@
       "enabled": true,
       "port": 4000
     }
+  },
+  "hosting": {
+    "public": "hosting",
+    "cleanUrls": true,
+    "ignore": [
+      "firebase.json",
+      "**/.*"
+    ]
   }
 }
