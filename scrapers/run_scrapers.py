@@ -137,6 +137,14 @@ def probe(urls: List[str], keyword: str) -> None:
             continue
         texts = [(url, response.text)]
         soup = BeautifulSoup(response.content, "lxml")
+        state = soup.find("script", id="ng-state")
+        if state is not None and state.string:
+            try:
+                for key, entry in json.loads(state.string).items():
+                    print(f"ng-state[{key}] shape:", json.dumps(_shape(entry), indent=1)[:3000])
+                    print(f"ng-state[{key}] sample:", json.dumps(entry, ensure_ascii=False)[:2500])
+            except ValueError as e:
+                print(f"ng-state not JSON: {e}")
         sources = [tag["src"] for tag in soup.find_all("script", src=True)]
         sources += [tag["href"] for tag in soup.find_all("link", rel="modulepreload", href=True)]
         for source_path in sources[:60]:

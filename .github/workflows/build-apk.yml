@@ -3,6 +3,11 @@ name: Build APK
 on:
   push:
     branches: [main]
+    # The scraper and the SOP site don't go into the app.
+    paths-ignore:
+      - "scrapers/**"
+      - "docs/**"
+      - ".github/workflows/scrape-jobs.yml"
   pull_request:
   workflow_dispatch:
 
