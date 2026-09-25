@@ -43,17 +43,20 @@ def backfill_bdjobs_details(ingestion, limit: int = 120, scan_all: bool = False)
     from firestore_ingestion import details_fields
 
     scraper = BDJobsScraper()
-    updated = 0
+    counts = {"checked": 0, "filled": 0, "gone": 0, "failed": 0}
     for doc_id, data in ingestion.jobs_missing_details("bdjobs", limit, scan_all=scan_all):
+        counts["checked"] += 1
         job_id = bdjobs_id(data.get("applyLink"))
         details = scraper.get_details(job_id) if job_id else {"detailsFetched": False}
         if details is None:
-            continue  # request failed; try again next run
+            counts["failed"] += 1  # try again next run
+            continue
         ingestion.update_job(doc_id, {**details_fields(details), "detailsPending": False})
-        updated += bool(details.get("detailsFetched"))
-    if updated:
-        print(f"[bdjobs] added full details to {updated} older jobs")
-    return updated
+        counts["filled" if details.get("detailsFetched") else "gone"] += 1
+    if counts["checked"] or scan_all:
+        print(f"[bdjobs] details backfill: {counts['checked']} checked, {counts['filled']} filled, "
+              f"{counts['gone']} no longer on bdjobs, {counts['failed']} failed")
+    return counts["filled"]
 
 
 def run_app_sources(ingestion) -> int:
