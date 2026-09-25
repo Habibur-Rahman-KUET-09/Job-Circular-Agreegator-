@@ -10,6 +10,7 @@ import '../providers/user_profile_provider.dart';
 import '../services/application_service.dart';
 import '../services/auth_service.dart';
 import '../services/saved_job_service.dart';
+import '../services/scraper_source_service.dart';
 import '../services/user_profile_service.dart';
 import '../utils/auth_errors.dart';
 import '../utils/open_link.dart';
@@ -18,6 +19,7 @@ import 'account_view.dart';
 import 'add_job_screen.dart';
 import 'applications_screen.dart';
 import 'how_it_works_screen.dart';
+import 'job_sources_screen.dart';
 import 'job_review_screen.dart';
 import 'saved_jobs_screen.dart';
 import 'user_profile_screen.dart';
@@ -149,6 +151,7 @@ class _AccountScreenState extends State<AccountScreen> {
       email: email,
       canReviewJobs: _role == UserRole.admin || _role == UserRole.moderator,
       canAddJobs: _role == UserRole.admin || _role == UserRole.moderator || _role == UserRole.recruiter,
+      canManageSources: _role == UserRole.admin,
       isPasswordUser: _auth.isPasswordUser,
       busy: _busy,
       onOpenProfile: _openProfile,
@@ -156,6 +159,7 @@ class _AccountScreenState extends State<AccountScreen> {
       onOpenApplications: _openApplications,
       onReviewJobs: _reviewJobs,
       onAddJob: _addJob,
+      onManageSources: () => _push(JobSourcesScreen(service: ScraperSourceService(_firestore), uid: _uid)),
       onChangePassword: _changePassword,
       onHowItWorks: () => _push(const HowItWorksScreen()),
       onOpenSop: () => openInAppBrowser(context, sopUrl),

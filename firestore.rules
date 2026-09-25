@@ -49,6 +49,21 @@ service cloud.firestore {
                     && request.auth.token.role == 'admin';
     }
 
+    // Job websites admins add from the app; the scraper (Admin SDK) reads
+    // them and writes each run's result back.
+    match /scraperSources/{sourceId} {
+      allow read, delete: if request.auth != null && request.auth.token.role == 'admin';
+      allow create, update: if request.auth != null
+                            && request.auth.token.role == 'admin'
+                            && request.resource.data.name is string
+                            && request.resource.data.name.size() > 0
+                            && request.resource.data.listUrl is string
+                            && request.resource.data.listUrl.matches('https?://.+')
+                            && request.resource.data.itemSelector is string
+                            && request.resource.data.itemSelector.size() > 0
+                            && request.resource.data.enabled is bool;
+    }
+
     // Audit log collection (admin only)
     match /auditLog/{logId} {
       allow read: if request.auth != null && request.auth.token.role == 'admin';

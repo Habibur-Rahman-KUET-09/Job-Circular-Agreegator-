@@ -1,7 +1,7 @@
 """Firestore ingestion layer for storing scraped jobs, skipping ones already stored."""
 
 from datetime import datetime, timedelta
-from typing import List, Dict, Optional
+from typing import Dict, List, Optional, Tuple
 import firebase_admin
 from firebase_admin import credentials, firestore
 import logging
@@ -41,9 +41,14 @@ class FirestoreIngestion:
 
         self.db = firestore.client()
         self.jobs_collection = "jobs"
+        self.sources_collection = "scraperSources"
 
-    def ingest_jobs(self, jobs: List[Dict], source: str) -> Dict:
-        """Ingest a list of jobs into Firestore."""
+    def ingest_jobs(self, jobs: List[Dict], source: str, id_key: Optional[str] = None) -> Dict:
+        """Ingest a list of jobs into Firestore.
+
+        `id_key` replaces `source` in the document IDs when the display name
+        can change (sources added from the app).
+        """
         stats = {
             "total": len(jobs),
             "inserted": 0,
@@ -56,7 +61,7 @@ class FirestoreIngestion:
 
         for job in jobs:
             try:
-                result = self._ingest_single_job(job, source)
+                result = self._ingest_single_job(job, source, id_key or source)
                 if result == "inserted":
                     stats["inserted"] += 1
                 elif result == "duplicate":
@@ -70,7 +75,7 @@ class FirestoreIngestion:
         logger.info(f"Ingestion complete. Stats: {stats}")
         return stats
 
-    def _ingest_single_job(self, job: Dict, source: str) -> str:
+    def _ingest_single_job(self, job: Dict, source: str, id_key: str) -> str:
         """Create the job unless it already exists; returns 'inserted' or 'duplicate'."""
         now = datetime.now().isoformat()
         job_data = {k: v for k, v in job.items() if k != "id"}
@@ -82,7 +87,7 @@ class FirestoreIngestion:
             "createdAt": now,
             "updatedAt": now,
         })
-        doc_ref = self.db.collection(self.jobs_collection).document(job_doc_id(job, source))
+        doc_ref = self.db.collection(self.jobs_collection).document(job_doc_id(job, id_key))
         try:
             # create() fails if the document exists, so a re-scraped job never
             # overwrites a moderator's approve/reject decision.
@@ -91,6 +96,19 @@ class FirestoreIngestion:
             return "duplicate"
         logger.info(f"Inserted job: {job['title']} ({doc_ref.id})")
         return "inserted"
+
+    def load_sources(self) -> List[Tuple[str, Dict]]:
+        """Enabled job sites added from the app, as (document id, config)."""
+        docs = self.db.collection(self.sources_collection).where("enabled", "==", True).stream()
+        return [(doc.id, doc.to_dict()) for doc in docs]
+
+    def record_source_run(self, source_id: str, job_count: int, error: Optional[str]) -> None:
+        """Show the result of the latest run on the source's row in the app."""
+        self.db.collection(self.sources_collection).document(source_id).update({
+            "lastRunAt": datetime.now().isoformat(),
+            "lastJobCount": job_count,
+            "lastError": error,
+        })
 
     def approve_pending_scraped(self) -> int:
         """Publish scraped jobs stored as pending before auto-approval existed."""

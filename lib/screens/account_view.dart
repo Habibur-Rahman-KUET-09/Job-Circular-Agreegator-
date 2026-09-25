@@ -13,6 +13,7 @@ class AccountView extends StatelessWidget {
   final String email;
   final bool canReviewJobs;
   final bool canAddJobs;
+  final bool canManageSources;
   final bool isPasswordUser;
   final bool busy;
   final VoidCallback onOpenProfile;
@@ -20,6 +21,7 @@ class AccountView extends StatelessWidget {
   final VoidCallback onOpenApplications;
   final VoidCallback onReviewJobs;
   final VoidCallback onAddJob;
+  final VoidCallback? onManageSources;
   final VoidCallback onChangePassword;
   final VoidCallback onHowItWorks;
   final VoidCallback onOpenSop;
@@ -32,6 +34,7 @@ class AccountView extends StatelessWidget {
     required this.email,
     required this.canReviewJobs,
     required this.canAddJobs,
+    this.canManageSources = false,
     required this.isPasswordUser,
     this.busy = false,
     required this.onOpenProfile,
@@ -39,6 +42,7 @@ class AccountView extends StatelessWidget {
     required this.onOpenApplications,
     required this.onReviewJobs,
     required this.onAddJob,
+    this.onManageSources,
     required this.onChangePassword,
     required this.onHowItWorks,
     required this.onOpenSop,
@@ -87,6 +91,13 @@ class AccountView extends StatelessWidget {
               _AccountTile(icon: Icons.fact_check_outlined, title: s.reviewJobs, onTap: onReviewJobs),
             if (canAddJobs)
               _AccountTile(icon: Icons.post_add, title: s.addJob, onTap: onAddJob),
+            if (canManageSources)
+              _AccountTile(
+                icon: Icons.travel_explore,
+                title: s.jobSources,
+                subtitle: s.jobSourcesSubtitle,
+                onTap: onManageSources,
+              ),
             const SizedBox(height: 12),
             if (isPasswordUser)
               _AccountTile(icon: Icons.lock_outline, title: s.changePassword, onTap: onChangePassword),

@@ -9,6 +9,8 @@ from google.api_core.exceptions import AlreadyExists  # noqa: E402
 from base_scraper import BaseScraper  # noqa: E402
 from bdjobs_scraper import BDJobsScraper, parse_experience, parse_ng_state  # noqa: E402
 from firestore_ingestion import FirestoreIngestion, job_doc_id  # noqa: E402
+from run_scrapers import run_app_sources  # noqa: E402
+from selector_scraper import SelectorScraper, parse_deadline  # noqa: E402
 
 
 class _Scraper(BaseScraper):
@@ -51,16 +53,21 @@ class _FakeCollection:
 
 class _FakeDb:
     def __init__(self):
-        self.store = {}
+        self.stores = {"jobs": {}}
+
+    @property
+    def store(self):
+        return self.stores["jobs"]
 
     def collection(self, name):
-        return _FakeCollection(self.store)
+        return _FakeCollection(self.stores.setdefault(name, {}))
 
 
 def _ingestion():
     ingestion = FirestoreIngestion.__new__(FirestoreIngestion)
     ingestion.db = _FakeDb()
     ingestion.jobs_collection = "jobs"
+    ingestion.sources_collection = "scraperSources"
     return ingestion
 
 
@@ -215,6 +222,121 @@ class BDJobsParsingTest(unittest.TestCase):
         self.assertEqual(parse_experience("At least 1 years"), (1, None))
         self.assertEqual(parse_experience("NA"), (None, None))
         self.assertEqual(parse_experience(None), (None, None))
+
+
+_SITE_PAGE = """<html><body><div class="list">
+<div class="job-card"><h3><a href="/jobs/101">Senior Officer, IT</a></h3>
+  <span class="org">Pubali Bank PLC</span><span class="place">Dhaka</span>
+  <span class="deadline">Deadline: 30 Oct 2026</span></div>
+<div class="job-card"><h3><a href="https://other.example/jobs/102">Sales   Executive</a></h3>
+  <span class="org"></span><span class="deadline">Apply before 5/11/2026</span></div>
+<div class="job-card"><h3><a href="/jobs/101">Senior Officer, IT</a></h3></div>
+<div class="job-card"><p>No title here</p></div>
+</div></body></html>"""
+
+_SITE_CONFIG = {
+    "name": "Example Jobs",
+    "listUrl": "https://jobs.example.com/latest",
+    "itemSelector": "div.job-card",
+    "titleSelector": "h3 a",
+    "companySelector": ".org",
+    "locationSelector": ".place",
+    "deadlineSelector": ".deadline",
+    "enabled": True,
+}
+
+
+class _FakeResponse:
+    def __init__(self, text, url, status=200):
+        self.text, self.url, self.status_code = text, url, status
+
+    def raise_for_status(self):
+        if self.status_code >= 400:
+            import requests
+            raise requests.HTTPError(f"{self.status_code}")
+
+
+class _FakeSession:
+    def __init__(self, pages):
+        self.pages, self.headers = pages, {}
+
+    def get(self, url, timeout=None):
+        return _FakeResponse(self.pages.get(url, ""), url, 200 if url in self.pages else 404)
+
+
+class SelectorScraperTest(unittest.TestCase):
+    def _scrape(self, config=None, pages=None):
+        config = config or _SITE_CONFIG
+        session = _FakeSession(pages if pages is not None else {config["listUrl"]: _SITE_PAGE})
+        scraper = SelectorScraper("src1", config, session=session)
+        return scraper, scraper.scrape()
+
+    def test_reads_each_job_card(self):
+        scraper, jobs = self._scrape()
+        self.assertEqual([j["title"] for j in jobs], ["Senior Officer, IT", "Sales Executive"])
+        officer, sales = jobs
+        self.assertEqual(officer["applyLink"], "https://jobs.example.com/jobs/101")
+        self.assertEqual(officer["company"], "Pubali Bank PLC")
+        self.assertEqual(officer["location"], "Dhaka")
+        self.assertEqual(officer["category"], "bank")
+        self.assertEqual(officer["deadline"][:10], "2026-10-30")
+        self.assertEqual(officer["source"], "Example Jobs")
+        self.assertEqual(officer["status"], "approved")
+        # Missing company falls back to the site's name; a day-first date is read.
+        self.assertEqual(sales["company"], "Example Jobs")
+        self.assertEqual(sales["location"], "Not specified")
+        self.assertEqual(sales["applyLink"], "https://other.example/jobs/102")
+        self.assertEqual(sales["deadline"][:10], "2026-11-05")
+        self.assertEqual(scraper.key, "site:src1")
+
+    def test_title_defaults_to_first_link(self):
+        config = {k: v for k, v in _SITE_CONFIG.items() if k in ("name", "listUrl", "itemSelector")}
+        _, jobs = self._scrape(config)
+        self.assertEqual([j["title"] for j in jobs], ["Senior Officer, IT", "Sales Executive"])
+        self.assertEqual(jobs[0]["applyLink"], "https://jobs.example.com/jobs/101")
+
+    def test_unreachable_page_and_bad_selector_are_errors(self):
+        scraper, jobs = self._scrape(pages={})
+        self.assertEqual(jobs, [])
+        self.assertIn("Could not load", scraper.errors[0])
+
+        scraper, jobs = self._scrape(dict(_SITE_CONFIG, itemSelector="div[["))
+        self.assertEqual(jobs, [])
+        self.assertIn("Could not read the page", scraper.errors[0])
+
+    def test_parse_deadline(self):
+        self.assertEqual(parse_deadline("Deadline: 30 Oct 2026").date().isoformat(), "2026-10-30")
+        self.assertIsNone(parse_deadline("Not mentioned"))
+        self.assertIsNone(parse_deadline(""))
+
+
+class AppSourcesRunTest(unittest.TestCase):
+    def test_runs_enabled_sources_and_records_results(self):
+        import run_scrapers
+
+        ingestion = _ingestion()
+        ingestion.db.stores["scraperSources"] = {
+            "good": dict(_SITE_CONFIG),
+            "broken": dict(_SITE_CONFIG, name="Broken", listUrl="https://down.example/"),
+            "off": dict(_SITE_CONFIG, name="Off", enabled=False),
+        }
+        pages = {_SITE_CONFIG["listUrl"]: _SITE_PAGE}
+        original = run_scrapers.SelectorScraper
+        run_scrapers.SelectorScraper = lambda sid, cfg: original(sid, cfg, session=_FakeSession(pages))
+        try:
+            found = run_app_sources(ingestion)
+            again = run_app_sources(ingestion)
+        finally:
+            run_scrapers.SelectorScraper = original
+
+        self.assertEqual((found, again), (2, 2))
+        self.assertEqual(len(ingestion.db.store), 2)  # the second run stored nothing new
+        sources = ingestion.db.stores["scraperSources"]
+        self.assertEqual(sources["good"]["lastJobCount"], 2)
+        self.assertIsNone(sources["good"]["lastError"])
+        self.assertEqual(sources["broken"]["lastJobCount"], 0)
+        self.assertIn("Could not load", sources["broken"]["lastError"])
+        self.assertNotIn("lastRunAt", sources["off"])
 
 
 if __name__ == "__main__":

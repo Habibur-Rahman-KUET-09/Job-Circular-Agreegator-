@@ -20,6 +20,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from bdjobs_scraper import BDJobsScraper
+from selector_scraper import SelectorScraper
 
 INSPECT_URLS = [BDJobsScraper.LIST_URL]
 
@@ -33,6 +34,37 @@ def scrape_all() -> Dict[str, List[Dict]]:
             print(f"  error: {error}")
         results[scraper.source_name] = jobs
     return results
+
+
+def run_app_sources(ingestion) -> int:
+    """Scrape the job sites admins added in the app; returns jobs found.
+
+    A broken site only marks its own row with the error; it never fails the
+    whole run, since bdjobs alone decides whether scraping is working.
+    """
+    try:
+        sources = ingestion.load_sources()
+    except Exception as e:
+        print(f"Could not load job sources added in the app: {e}")
+        return 0
+    found = 0
+    for source_id, config in sources:
+        scraper = SelectorScraper(source_id, config)
+        jobs = scraper.scrape()
+        error = scraper.errors[0] if scraper.errors else None
+        if not jobs and not error:
+            error = "No jobs matched the selectors"
+        line = f"[{scraper.display_name}] {len(jobs)} jobs"
+        if jobs:
+            stats = ingestion.ingest_jobs(jobs, scraper.source_name, id_key=scraper.key)
+            line += f", inserted={stats['inserted']} already_stored={stats['duplicates']} errors={stats['errors']}"
+        print(line + (f" ({error})" if error else ""))
+        try:
+            ingestion.record_source_run(source_id, len(jobs), error)
+        except Exception as e:
+            print(f"  could not save the run result: {e}")
+        found += len(jobs)
+    return found
 
 
 def _describe(el) -> str:
@@ -197,6 +229,7 @@ def main() -> int:
             if jobs:
                 stats = ingestion.ingest_jobs(jobs, source)
                 print(f"[{source}] inserted={stats['inserted']} already_stored={stats['duplicates']} errors={stats['errors']}")
+        run_app_sources(ingestion)
 
     if total == 0:
         print("No jobs scraped from any source; the site layouts have probably changed.")

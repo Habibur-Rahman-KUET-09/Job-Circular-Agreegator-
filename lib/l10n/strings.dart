@@ -261,9 +261,9 @@ class Strings {
   // ---- How it works ----
   List<(String, String)> get howItWorksSteps => [
         (
-          _t('চাকরি আসে প্রতিদিন', 'Jobs arrive every day'),
-          _t('প্রতিদিন সকাল ৬টায় bdjobs থেকে নতুন চাকরি স্বয়ংক্রিয়ভাবে যোগ হয় এবং সরাসরি তালিকায় দেখায়।',
-              'Every day at 6 AM new jobs are collected from bdjobs and appear in the list right away.'),
+          _t('চাকরি আসে প্রতি ৩ ঘণ্টায়', 'Jobs arrive every 3 hours'),
+          _t('প্রতি ৩ ঘণ্টা পরপর bdjobs ও অ্যাডমিনের যোগ করা ওয়েবসাইট থেকে নতুন চাকরি স্বয়ংক্রিয়ভাবে যোগ হয় এবং সরাসরি তালিকায় দেখায়।',
+              'Every 3 hours new jobs are collected from bdjobs and the websites admins added, and appear in the list right away.'),
         ),
         (
           _t('খুঁজুন ও ফিল্টার করুন', 'Search and filter'),
@@ -305,4 +305,47 @@ class Strings {
   String get submitForReview => _t('যাচাইয়ের জন্য জমা দিন', 'Submit for review');
   String get jobSubmittedForReview =>
       _t('চাকরি জমা হয়েছে; অনুমোদনের পর সবাই দেখতে পাবে', 'Job submitted; everyone will see it once approved');
+
+  // ---- Job sources (admin) ----
+  String get jobSources => _t('জব সোর্স', 'Job sources');
+  String get jobSourcesSubtitle => _t('নতুন ওয়েবসাইট থেকে চাকরি আনুন', 'Collect jobs from more websites');
+  String get jobSourcesIntro => _t(
+      'চালু থাকা প্রতিটি সোর্স থেকে প্রতি ৩ ঘণ্টায় চাকরি আনা হয়। নতুন সোর্স যোগ করতে + চাপুন, ওয়েবসাইটের লিংক দিন, "খুঁজে দিন" চাপুন, তারপর "পরীক্ষা করুন" দিয়ে দেখে নিন ঠিকমতো চাকরি আসছে কি না।',
+      'Jobs are collected from every enabled source every 3 hours. Tap + to add one: enter the site\'s job list link, tap "Detect", then "Test" to check that the right jobs come through.');
+  String get noJobSources => _t('এখনো কোনো সোর্স যোগ করা হয়নি', 'No sources added yet');
+  String get addJobSource => _t('সোর্স যোগ করুন', 'Add source');
+  String get editJobSource => _t('সোর্স সম্পাদনা', 'Edit source');
+  String get sourceNameLabel => _t('ওয়েবসাইটের নাম', 'Website name');
+  String get sourceListUrlLabel => _t('চাকরির তালিকার লিংক', 'Job list link');
+  String get itemSelectorLabel => _t('প্রতিটি চাকরির সিলেক্টর', 'Selector for each job');
+  String get itemSelectorHelp =>
+      _t('যেমন div.job-card — পাতার প্রতিটি চাকরির বক্স', 'e.g. div.job-card — the box around each job on the page');
+  String get optionalSelectors => _t('ঐচ্ছিক সিলেক্টর (বক্সের ভেতরে)', 'Optional selectors (inside the box)');
+  String get optionalSelectorsHelp => _t(
+      'খালি রাখলে বক্সের প্রথম লিংকটি পদের নাম ও আবেদনের লিংক হিসেবে ধরা হবে।',
+      'Left empty, the box\'s first link is used as the job title and apply link.');
+  String get titleSelectorLabel => _t('পদের নাম', 'Job title');
+  String get companySelectorLabel => _t('প্রতিষ্ঠান', 'Company');
+  String get locationSelectorLabel => _t('স্থান', 'Location');
+  String get deadlineSelectorLabel => _t('শেষ তারিখ', 'Deadline');
+  String get linkSelectorLabel => _t('আবেদনের লিংক', 'Apply link');
+  String get sourceEnabled => _t('চালু', 'Enabled');
+  String get detectSelector => _t('খুঁজে দিন', 'Detect');
+  String get testSource => _t('পরীক্ষা করুন', 'Test');
+  String get selectorNotDetected => _t(
+      'নিজে থেকে খুঁজে পাওয়া যায়নি; সিলেক্টর হাতে লিখুন', 'Could not detect it; enter the selector yourself');
+  String selectorDetected(String selector) => _t('পাওয়া গেছে: $selector', 'Found: $selector');
+  String previewCount(int n) => _t('$nটি চাকরি পাওয়া গেছে', '$n jobs found');
+  String get previewEmpty => _t(
+      'কোনো চাকরি পাওয়া যায়নি। সিলেক্টর ঠিক আছে কি না দেখুন; কিছু সাইট JavaScript দিয়ে তালিকা বানায়, সেগুলো থেকে এভাবে আনা যায় না।',
+      'No jobs found. Check the selector; some sites build their list with JavaScript and can\'t be read this way.');
+  String previewFailed(String error) => _t('পাতাটি পড়া যায়নি: $error', 'Could not read the page: $error');
+  String get testBeforeSaving => _t('সংরক্ষণের আগে "পরীক্ষা করুন" চাপুন', 'Tap "Test" before saving');
+  String get sourceSaved => _t('সোর্স সংরক্ষিত হয়েছে; পরের রানে চাকরি আসবে', 'Source saved; jobs arrive on the next run');
+  String get deleteSourceTitle => _t('সোর্স মুছবেন?', 'Delete source?');
+  String get deleteSourceMessage => _t(
+      'এই সোর্স থেকে আর চাকরি আনা হবে না। আগে আনা চাকরিগুলো থেকে যাবে।',
+      'No more jobs will be collected from it. Jobs already collected stay.');
+  String get notRunYet => _t('এখনো চালানো হয়নি', 'Not run yet');
+  String lastRun(String when, int count) => _t('শেষ রান: $when · $countটি চাকরি', 'Last run: $when · $count jobs');
 }

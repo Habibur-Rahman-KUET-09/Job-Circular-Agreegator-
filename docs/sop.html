@@ -80,8 +80,8 @@
   <ol>
     <li class="bn">ইমেইল অথবা Google দিয়ে অ্যাকাউন্ট খুলুন।</li>
     <li class="en">Create an account with email or Google.</li>
-    <li class="bn">প্রতিদিন সকাল ৬টায় নতুন চাকরি নিজে থেকেই তালিকায় আসে; নিচে টেনে তালিকা হালনাগাদ করুন।</li>
-    <li class="en">New jobs arrive automatically every day at 6 AM; pull down to refresh the list.</li>
+    <li class="bn">প্রতি ৩ ঘণ্টায় নতুন চাকরি নিজে থেকেই তালিকায় আসে; নিচে টেনে তালিকা হালনাগাদ করুন।</li>
+    <li class="en">New jobs arrive automatically every 3 hours; pull down to refresh the list.</li>
     <li class="bn">ফিল্টার বাটন দিয়ে শিরোনাম, বিভাগ বা এলাকা অনুযায়ী খুঁজুন।</li>
     <li class="en">Use the filter button to search by title, category or location.</li>
     <li class="bn">চাকরিতে ট্যাপ করে বিস্তারিত দেখুন, “এখনই আবেদন করুন” চেপে মূল বিজ্ঞপ্তিতে আবেদন করুন।</li>
@@ -211,17 +211,38 @@
 <section class="card" id="source">
   <h2><span class="bn">৭. চাকরি কোথা থেকে আসে</span><span class="en">7. Where jobs come from</span></h2>
   <ul class="bn">
-    <li>প্রতিদিন সকাল ৬টায় (ঢাকা সময়) bdjobs.com-এর সবচেয়ে নতুন চাকরিগুলো স্বয়ংক্রিয়ভাবে সংগ্রহ হয়।</li>
+    <li>প্রতি ৩ ঘণ্টা পরপর (সকাল ৬টা, ৯টা, দুপুর ১২টা… ঢাকা সময়) bdjobs.com ও অ্যাডমিনের যোগ করা ওয়েবসাইটগুলো থেকে নতুন চাকরি স্বয়ংক্রিয়ভাবে সংগ্রহ হয়।</li>
     <li>এভাবে আসা চাকরি <span class="tag">যাচাই ছাড়াই</span> সরাসরি তালিকায় দেখায়।</li>
     <li>একই চাকরি দ্বিতীয়বার যোগ হয় না, আর আগে বাতিল করা চাকরি আবার ফিরে আসে না।</li>
     <li>হাতে যোগ করা চাকরি আলাদা নিয়মে চলে — নিচের ৮ ও ৯ নম্বর অংশ দেখুন।</li>
   </ul>
   <ul class="en">
-    <li>Every day at 6 AM (Dhaka time) the newest jobs on bdjobs.com are collected automatically.</li>
+    <li>Every 3 hours (6 AM, 9 AM, noon… Dhaka time) new jobs are collected automatically from bdjobs.com and the websites admins added.</li>
     <li>These jobs appear in the list right away, <span class="tag">without review</span>.</li>
     <li>The same job is never added twice, and a job that was rejected does not come back.</li>
     <li>Jobs added by hand follow different rules — see sections 8 and 9.</li>
   </ul>
+
+  <h3 class="bn">নতুন ওয়েবসাইট যোগ করা</h3>
+  <h3 class="en">Adding a website</h3>
+  <p><span class="tag bn">শুধু অ্যাডমিন</span><span class="tag en">Admin only</span></p>
+  <ol class="bn">
+    <li><span class="path">অ্যাকাউন্ট › জব সোর্স</span> খুলে <b>+ সোর্স যোগ করুন</b> চাপুন।</li>
+    <li>ওয়েবসাইটের নাম এবং যে পাতায় চাকরির তালিকা আছে তার লিংক দিন।</li>
+    <li><b>খুঁজে দিন</b> চাপুন — অ্যাপ নিজেই পাতায় প্রতিটি চাকরির বক্স চেনার সিলেক্টর (যেমন <code>div.job-card</code>) বসিয়ে দেবে। না পারলে হাতে লিখুন।</li>
+    <li>দরকার হলে "ঐচ্ছিক সিলেক্টর" খুলে পদের নাম, প্রতিষ্ঠান, স্থান, শেষ তারিখ ও আবেদনের লিংকের সিলেক্টর দিন। খালি রাখলে বক্সের প্রথম লিংকটিই পদের নাম ও আবেদনের লিংক ধরা হয়।</li>
+    <li><b>পরীক্ষা করুন</b> চাপুন — কয়টি চাকরি পাওয়া গেল আর প্রথম ১০টি কেমন দেখাবে তা নিচে দেখাবে। ঠিক থাকলে <b>সংরক্ষণ করুন</b>।</li>
+    <li>পরের রানে (৩ ঘণ্টার মধ্যে) এই সাইটের চাকরি তালিকায় আসবে। তালিকায় প্রতিটি সোর্সের শেষ রানের সময়, কয়টি চাকরি এসেছে আর কোনো সমস্যা হলে তা লাল লেখায় দেখায়। সুইচ দিয়ে সোর্স বন্ধ/চালু করা যায়।</li>
+  </ol>
+  <ol class="en">
+    <li>Open <span class="path">Account › Job sources</span> and tap <b>+ Add source</b>.</li>
+    <li>Enter the website's name and the link to the page that lists its jobs.</li>
+    <li>Tap <b>Detect</b> — the app fills in the selector for each job's box on the page (e.g. <code>div.job-card</code>). If it can't, type it yourself.</li>
+    <li>If needed, open "Optional selectors" for the title, company, location, deadline and apply link. Left empty, the box's first link is used as the title and apply link.</li>
+    <li>Tap <b>Test</b> — it shows how many jobs were found and the first 10 as they will appear. If they look right, tap <b>Save</b>.</li>
+    <li>The site's jobs arrive on the next run (within 3 hours). The list shows each source's last run, how many jobs it found, and any problem in red. The switch turns a source off or on.</li>
+  </ol>
+  <p><span class="bn">কিছু সাইট JavaScript দিয়ে তালিকা বানায়; "পরীক্ষা করুন"-এ ০টি চাকরি এলে সেই সাইট এভাবে পড়া যায় না।</span><span class="en">Some sites build their list with JavaScript; if "Test" finds 0 jobs, that site can't be read this way.</span></p>
 </section>
 
 <section class="card" id="add">
@@ -267,14 +288,14 @@
     <tr><td>ব্যবহারকারী</td><td>চাকরি খোঁজা, আবেদন, সংরক্ষণ, আবেদনের হিসাব, প্রোফাইল</td></tr>
     <tr><td>রিক্রুটার</td><td>ব্যবহারকারীর সব কিছু + নিজের প্রতিষ্ঠানের চাকরি যোগ ও সম্পাদনা (অনুমোদন সাপেক্ষে)</td></tr>
     <tr><td>মডারেটর</td><td>চাকরি যোগ করা + যেকোনো চাকরি অনুমোদন বা প্রত্যাখ্যান</td></tr>
-    <tr><td>অ্যাডমিন</td><td>মডারেটরের সব কিছু; রোল নির্ধারণ করেন অ্যাপের মালিক</td></tr>
+    <tr><td>অ্যাডমিন</td><td>মডারেটরের সব কিছু + নতুন ওয়েবসাইট (জব সোর্স) যোগ; রোল নির্ধারণ করেন অ্যাপের মালিক</td></tr>
   </table>
   <table class="en">
     <tr><th>Role</th><th>Can do</th></tr>
     <tr><td>User</td><td>Find, apply to, save and track jobs; edit profile</td></tr>
     <tr><td>Recruiter</td><td>Everything a user can + add and edit jobs for their own company (subject to approval)</td></tr>
     <tr><td>Moderator</td><td>Add jobs + approve or reject any job</td></tr>
-    <tr><td>Admin</td><td>Everything a moderator can; roles are assigned by the app owner</td></tr>
+    <tr><td>Admin</td><td>Everything a moderator can + add websites (job sources); roles are assigned by the app owner</td></tr>
   </table>
   <p class="bn">রোল দেন অ্যাডমিন: GitHub রিপোজিটরির <b>Actions › Set user role</b>-এ ব্যবহারকারীর ইমেইল ও রোল দিয়ে চালান। নতুন রোল পেতে ব্যবহারকারীকে অ্যাপ বন্ধ করে আবার খুলতে হয়।</p>
   <p class="en">An admin assigns roles by running <b>Actions › Set user role</b> in the GitHub repository with the user's email and role. The user then reopens the app to get the new role.</p>
@@ -283,14 +304,14 @@
 <section class="card" id="help">
   <h2><span class="bn">১১. সমস্যা ও সমাধান</span><span class="en">11. Troubleshooting</span></h2>
   <ul class="bn">
-    <li><b>নতুন চাকরি দেখছি না</b> — তালিকা নিচে টানুন। সংগ্রহ হয় দিনে একবার, সকাল ৬টায়।</li>
+    <li><b>নতুন চাকরি দেখছি না</b> — তালিকা নিচে টানুন। সংগ্রহ হয় প্রতি ৩ ঘণ্টায়।</li>
     <li><b>Google দিয়ে লগইন হচ্ছে না</b> — ইন্টারনেট সংযোগ দেখুন এবং অ্যাপের সর্বশেষ সংস্করণ ব্যবহার করুন।</li>
     <li><b>আবেদন লিংক খুলছে না</b> — ফোনে Chrome চালু আছে কিনা দেখুন; না হলে অন্য ব্রাউজারে খোলে।</li>
     <li><b>“চাকরি যাচাই” দেখাচ্ছে না</b> — আপনার রোল মডারেটর বা অ্যাডমিন কিনা অ্যাডমিনকে জিজ্ঞেস করুন, তারপর অ্যাপ বন্ধ করে আবার খুলুন।</li>
     <li><b>অ্যাকাউন্ট মুছতে পারছি না</b> — নিরাপত্তার জন্য একবার লগআউট করে আবার লগইন করুন, তারপর চেষ্টা করুন।</li>
   </ul>
   <ul class="en">
-    <li><b>I don't see new jobs</b> — pull the list down. Jobs are collected once a day at 6 AM.</li>
+    <li><b>I don't see new jobs</b> — pull the list down. Jobs are collected every 3 hours.</li>
     <li><b>Google sign-in fails</b> — check your internet connection and use the latest version of the app.</li>
     <li><b>The apply link won't open</b> — make sure Chrome is enabled on the phone; otherwise it opens in another browser.</li>
     <li><b>“Review jobs” is missing</b> — ask an admin whether you are a moderator or admin, then reopen the app.</li>

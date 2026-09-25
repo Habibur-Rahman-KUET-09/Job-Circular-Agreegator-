@@ -28,12 +28,14 @@ Future<(LocaleProvider, List<String>)> _pump(
         email: 'rahim@example.com',
         canReviewJobs: admin,
         canAddJobs: admin || recruiter,
+        canManageSources: admin,
         isPasswordUser: passwordUser,
         onOpenProfile: tap('profile'),
         onOpenSavedJobs: tap('saved'),
         onOpenApplications: tap('applications'),
         onReviewJobs: tap('review'),
         onAddJob: tap('addJob'),
+        onManageSources: tap('sources'),
         onChangePassword: tap('password'),
         onHowItWorks: tap('how'),
         onOpenSop: tap('sop'),
@@ -61,12 +63,14 @@ void main() {
     await _pump(tester);
     expect(find.text('Review jobs'), findsNothing);
     expect(find.text('Add job'), findsNothing);
+    expect(find.text('Job sources'), findsNothing);
   });
 
   testWidgets('admins see review and add-job; recruiters only add-job', (tester) async {
     await _pump(tester, admin: true);
     expect(find.text('Review jobs'), findsOneWidget);
     expect(find.text('Add job'), findsOneWidget);
+    expect(find.text('Job sources'), findsOneWidget);
 
     await _pump(tester, recruiter: true);
     expect(find.text('Review jobs'), findsNothing);
