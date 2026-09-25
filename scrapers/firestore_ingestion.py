@@ -23,6 +23,15 @@ def job_doc_id(job: Dict, source: str) -> str:
     return hashlib.sha1(key.encode("utf-8")).hexdigest()[:20]
 
 
+# Job fields that come from a job's full circular (see bdjobs_scraper.parse_details).
+DETAIL_FIELDS = ("details", "detailsFetched", "detailsPending", "description", "requiredSkills", "salaryMin",
+                 "vacancies", "workplace", "companyAddress", "companyWebsite", "jobLocationDetail")
+
+
+def details_fields(job: Dict) -> Dict:
+    return {k: job[k] for k in DETAIL_FIELDS if k in job}
+
+
 class FirestoreIngestion:
     """Handle storing scraped jobs in Firestore with duplicate detection."""
 
@@ -93,9 +102,45 @@ class FirestoreIngestion:
             # overwrites a moderator's approve/reject decision.
             doc_ref.create(job_data, timeout=60)
         except AlreadyExists:
+            if job.get("detailsFetched") and self._add_details(doc_ref, job):
+                return "updated"
             return "duplicate"
         logger.info(f"Inserted job: {job['title']} ({doc_ref.id})")
         return "inserted"
+
+    def _add_details(self, doc_ref, job: Dict) -> bool:
+        """Give a job stored before its full circular was fetched the details."""
+        existing = doc_ref.get().to_dict() or {}
+        if existing.get("detailsFetched"):
+            return False
+        doc_ref.update({**details_fields(job), "updatedAt": datetime.now().isoformat()})
+        return True
+
+    def jobs_missing_details(self, source: str, limit: int, scan_all: bool = False) -> List[Tuple[str, Dict]]:
+        """Stored jobs from `source` still waiting for their full circular.
+
+        Normally only jobs whose detail request failed (`detailsPending`);
+        `scan_all` also finds jobs stored before details were fetched at all,
+        reading the whole source once.
+        """
+        jobs = self.db.collection(self.jobs_collection)
+        if scan_all:
+            docs = jobs.where("source", "==", source).stream()
+        else:
+            docs = jobs.where("detailsPending", "==", True).where("source", "==", source).stream()
+        missing = []
+        for doc in docs:
+            data = doc.to_dict()
+            if scan_all and "detailsFetched" in data and not data.get("detailsPending"):
+                continue
+            missing.append((doc.id, data))
+            if len(missing) >= limit:
+                break
+        return missing
+
+    def update_job(self, doc_id: str, fields: Dict) -> None:
+        self.db.collection(self.jobs_collection).document(doc_id).update(
+            {**fields, "updatedAt": datetime.now().isoformat()})
 
     def load_sources(self) -> List[Tuple[str, Dict]]:
         """Enabled job sites added from the app, as (document id, config)."""

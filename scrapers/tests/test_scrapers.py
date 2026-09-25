@@ -7,9 +7,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from google.api_core.exceptions import AlreadyExists  # noqa: E402
 
 from base_scraper import BaseScraper  # noqa: E402
-from bdjobs_scraper import BDJobsScraper, parse_experience, parse_ng_state  # noqa: E402
+from bdjobs_scraper import BDJobsScraper, html_to_text, parse_details, parse_experience, parse_ng_state  # noqa: E402
 from firestore_ingestion import FirestoreIngestion, job_doc_id  # noqa: E402
-from run_scrapers import run_app_sources  # noqa: E402
+from run_scrapers import backfill_bdjobs_details, run_app_sources  # noqa: E402
 from selector_scraper import SelectorScraper, parse_deadline  # noqa: E402
 
 
@@ -25,6 +25,9 @@ class _FakeDoc:
 
     def to_dict(self):
         return dict(self.store[self.id])
+
+    def get(self):
+        return self
 
     def update(self, data):
         self.store[self.id].update(data)
@@ -190,7 +193,7 @@ class BDJobsParsingTest(unittest.TestCase):
             parse_ng_state("<html><body>redesigned</body></html>")
 
     def test_converts_items_to_app_jobs(self):
-        scraper = BDJobsScraper(max_pages=1, delay_seconds=0)
+        scraper = BDJobsScraper(delay_seconds=0, fetch_details=False)
         items, _ = parse_ng_state(_BDJOBS_PAGE)
         seen = set()
         self.assertEqual(scraper._add_jobs(items, seen), 3)
@@ -337,6 +340,136 @@ class AppSourcesRunTest(unittest.TestCase):
         self.assertEqual(sources["broken"]["lastJobCount"], 0)
         self.assertIn("Could not load", sources["broken"]["lastError"])
         self.assertNotIn("lastRunAt", sources["off"])
+
+
+# Trimmed from the real details API response for job 1535146 (Sept 2026).
+_DETAILS = {
+    "JobId": "1535146", "JobFound": "True", "JobTitle": "Assistant Manager / Senior Sales Executive",
+    "JobVacancies": "2",
+    "JobDescription": "<p>Almadina Abashon Ltd. is looking for a Senior Sales Executive.</p>"
+                      "<p><strong>Key Responsibilities:</strong></p><ul><li><p>Sell plots and land</p></li>"
+                      "<li><p>Build relationships with clients</p></li></ul>",
+    "JobNature": "Full Time", "JobWorkPlace": "Work at office", "EducationRequirements": "",
+    "SkillsRequired": "Customer Relationship,Customer Service,Sales & Marketing",
+    "experience": "<ul><li>3 to 5 years</li><li>The applicants should have experience in: Real Estate</li></ul>",
+    "AdditionJobRequirements": "<ul><li>Age 24 to 50 years</li><li>Only Male</li></ul>",
+    "JobLocation": "Dhaka (Mirpur 2)", "CompanyBusiness": "A real estate company.\r\n\r\nWhy Join Us?",
+    "CompanyAddress": "Plot C-11, Mirpur-2, Dhaka", "CompanyWeb": "",
+    "JobOtherBenifits": "<ul><li>Mobile bill</li><li>Salary Review: Yearly</li></ul>",
+    "JobSalaryRangeText": "Tk. 30000 - 40000 (Monthly)",
+}
+
+
+class _JsonResponse:
+    def __init__(self, payload=None, text="", status=200):
+        self.payload, self.text, self.status_code = payload, text, status
+
+    def raise_for_status(self):
+        if self.status_code >= 400:
+            import requests
+            raise requests.HTTPError(str(self.status_code))
+
+    def json(self):
+        return self.payload
+
+
+class _BDJobsSession:
+    def __init__(self, details_by_id, fail_ids=()):
+        self.details_by_id, self.fail_ids, self.headers = details_by_id, set(fail_ids), {}
+
+    def get(self, url, params=None, timeout=None):
+        if url == BDJobsScraper.LIST_URL:
+            return _JsonResponse(text=_BDJOBS_PAGE)
+        job_id = str(params["jobId"])
+        if job_id in self.fail_ids:
+            return _JsonResponse(status=503)
+        details = self.details_by_id.get(job_id)
+        if details is None:
+            return _JsonResponse({"statuscode": "0", "data": [{"JobFound": "False"}]})
+        return _JsonResponse({"statuscode": "0", "message": "Success", "data": [details]})
+
+
+class BDJobsDetailsTest(unittest.TestCase):
+    def test_parse_details_keeps_sections_as_readable_text(self):
+        fields = parse_details(_DETAILS)
+        sections = fields["details"]
+        self.assertEqual(sections["responsibilities"],
+                         "Almadina Abashon Ltd. is looking for a Senior Sales Executive.\n"
+                         "Key Responsibilities:\n• Sell plots and land\n• Build relationships with clients")
+        self.assertEqual(sections["experience"],
+                         "• 3 to 5 years\n• The applicants should have experience in: Real Estate")
+        self.assertEqual(sections["requirements"], "• Age 24 to 50 years\n• Only Male")
+        self.assertEqual(sections["benefits"], "• Mobile bill\n• Salary Review: Yearly")
+        self.assertEqual(sections["company"], "A real estate company.\nWhy Join Us?")
+        self.assertNotIn("education", sections)
+        self.assertEqual(fields["description"], sections["responsibilities"])
+        self.assertEqual(fields["requiredSkills"], ["Customer Relationship", "Customer Service", "Sales & Marketing"])
+        self.assertEqual(fields["salaryMin"], "Tk. 30000 - 40000 (Monthly)")
+        self.assertEqual(fields["vacancies"], "2")
+        self.assertEqual(fields["workplace"], "Work at office")
+        self.assertEqual(fields["companyAddress"], "Plot C-11, Mirpur-2, Dhaka")
+        self.assertNotIn("companyWebsite", fields)
+        self.assertTrue(fields["detailsFetched"])
+
+    def test_nested_lists_fold_into_their_item(self):
+        self.assertEqual(html_to_text("<ul><li>Skills<ul><li>Excel</li></ul></li></ul>"), "• Skills • Excel")
+
+    def test_scrape_adds_details_and_flags_failures_for_retry(self):
+        scraper = BDJobsScraper(delay_seconds=0)
+        scraper.session = _BDJobsSession({"1537195": _DETAILS}, fail_ids={"1537184"})
+        jobs = {j["applyLink"].rsplit("=", 1)[1]: j for j in scraper.scrape()}
+
+        self.assertTrue(jobs["1537195"]["detailsFetched"])
+        self.assertFalse(jobs["1537195"]["detailsPending"])
+        self.assertIn("Sell plots and land", jobs["1537195"]["description"])
+        # Request failed: retried by a later run.
+        self.assertTrue(jobs["1537184"]["detailsPending"])
+        self.assertNotIn("detailsFetched", jobs["1537184"])
+        # Gone from bdjobs: not retried.
+        self.assertFalse(jobs["1537117"]["detailsFetched"])
+        self.assertFalse(jobs["1537117"]["detailsPending"])
+
+    def test_stored_job_gets_details_once(self):
+        ingestion = _ingestion()
+        job = BDJobsScraper(delay_seconds=0, fetch_details=False)._to_job(
+            {"Jobid": "1535146", "jobTitle": "Sales", "companyName": "Almadina"})
+        ingestion.ingest_jobs([job], "bdjobs")
+        detailed = dict(job, **parse_details(_DETAILS), detailsPending=False)
+
+        self.assertEqual(ingestion.ingest_jobs([detailed], "bdjobs")["updated"], 1)
+        self.assertEqual(ingestion.ingest_jobs([detailed], "bdjobs")["duplicates"], 1)
+        stored = next(iter(ingestion.db.store.values()))
+        self.assertIn("Sell plots and land", stored["description"])
+        self.assertEqual(stored["status"], "approved")
+
+    def test_backfill_fills_pending_and_older_jobs(self):
+        ingestion = _ingestion()
+        link = BDJobsScraper.DETAIL_URL.format
+        ingestion.db.store.update({
+            "pending": {"source": "bdjobs", "applyLink": link(job_id="1535146"), "detailsPending": True},
+            "old": {"source": "bdjobs", "applyLink": link(job_id="1535146")},
+            "done": {"source": "bdjobs", "applyLink": link(job_id="1"), "detailsFetched": True},
+            "gone": {"source": "bdjobs", "applyLink": link(job_id="999"), "detailsPending": True},
+        })
+        original = BDJobsScraper.__init__
+
+        def patched(self, *args, **kwargs):
+            original(self, delay_seconds=0)
+            self.session = _BDJobsSession({"1535146": _DETAILS})
+
+        BDJobsScraper.__init__ = patched
+        try:
+            self.assertEqual(backfill_bdjobs_details(ingestion), 1)  # regular run: pending only
+            self.assertNotIn("details", ingestion.db.store["old"])
+            self.assertFalse(ingestion.db.store["gone"]["detailsFetched"])
+            self.assertEqual(backfill_bdjobs_details(ingestion, scan_all=True), 1)  # one-off: older too
+        finally:
+            BDJobsScraper.__init__ = original
+
+        self.assertTrue(ingestion.db.store["pending"]["detailsFetched"])
+        self.assertFalse(ingestion.db.store["pending"]["detailsPending"])
+        self.assertIn("responsibilities", ingestion.db.store["old"]["details"])
+        self.assertNotIn("details", ingestion.db.store["done"])
 
 
 if __name__ == "__main__":

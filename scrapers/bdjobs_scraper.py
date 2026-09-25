@@ -1,9 +1,14 @@
 """Scraper for bdjobs.com.
 
-The jobs page (https://bdjobs.com/h/jobs/) is an Angular app that embeds the
-first page of results as JSON in <script id="ng-state">, the same data its
+The jobs page (https://bdjobs.com/h/jobs/) is an Angular app that embeds its
+newest ~60 jobs as JSON in <script id="ng-state">, the same data its
 GetJobSearch API returns. Reading that JSON is far more stable than scraping
-rendered HTML.
+rendered HTML. The API gives no further pages to plain requests, so the
+scheduled run goes often instead.
+
+The list only has a summary, so each job's full circular (responsibilities,
+requirements, benefits, company) comes from the JSON API the job details
+page (https://jobs.bdjobs.com/jobdetails/?id=N) calls.
 """
 
 import json
@@ -13,22 +18,33 @@ from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, NavigableString
 
 from base_scraper import BaseScraper
 
-# Tried in order to find the query parameter that selects a results page.
-PAGE_PARAM_CANDIDATES = ("pg", "page", "pn", "p")
+DETAILS_API = "https://gateway.bdjobs.com/ActtivejobsTest/api/JobSubsystem/jobDetails"
+
+# Circular sections as stored on the job (`details` map) -> bdjobs field.
+DETAIL_SECTIONS = {
+    "responsibilities": "JobDescription",
+    "education": "EducationRequirements",
+    "experience": "experience",
+    "requirements": "AdditionJobRequirements",
+    "benefits": "JobOtherBenifits",
+    "process": "RecruitmentProcessingInformation",
+    "company": "CompanyBusiness",
+}
 
 
 class BDJobsScraper(BaseScraper):
     LIST_URL = "https://bdjobs.com/h/jobs/"
+    # Kept as the stored apply link: document IDs are derived from it.
     DETAIL_URL = "https://jobs.bdjobs.com/jobdetails.asp?id={job_id}"
 
-    def __init__(self, max_pages: int = 10, delay_seconds: float = 1.0):
+    def __init__(self, delay_seconds: float = 0.5, fetch_details: bool = True):
         super().__init__("bdjobs")
-        self.max_pages = max_pages
         self.delay_seconds = delay_seconds
+        self.fetch_details = fetch_details
         self.session = requests.Session()
         self.session.headers.update({
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
@@ -36,47 +52,52 @@ class BDJobsScraper(BaseScraper):
 
     def scrape(self) -> List[Dict]:
         try:
-            first_page, total_pages = self._fetch_page(None)
+            response = self.session.get(self.LIST_URL, timeout=30)
+            response.raise_for_status()
+            items, _ = parse_ng_state(response.text)
         except (requests.RequestException, ValueError) as e:
             self.log_error(f"Could not load the job list: {e}")
             return []
 
-        seen = set()
-        self._add_jobs(first_page, seen)
-
-        page_param = self._find_page_param(seen) if total_pages > 1 else None
-        if page_param:
-            for page in range(3, min(self.max_pages, total_pages) + 1):
-                time.sleep(self.delay_seconds)
-                try:
-                    items, _ = self._fetch_page({page_param: page})
-                except (requests.RequestException, ValueError) as e:
-                    self.log_error(f"Page {page} failed: {e}")
-                    break
-                if not self._add_jobs(items, seen):
-                    break
-        elif total_pages > 1:
-            self.log_info("No working page parameter found; only the first page was read")
+        self._add_jobs(items, set())
+        if self.fetch_details:
+            fetched = 0
+            for job in self.scraped_jobs:
+                job_id = bdjobs_id(job.get("applyLink"))
+                details = self.get_details(job_id) if job_id else {"detailsFetched": False}
+                # A failed request is retried by later runs (see run_scrapers).
+                job["detailsPending"] = details is None
+                if details:
+                    job.update(details)
+                    fetched += bool(details.get("detailsFetched"))
+            self.log_info(f"Fetched details for {fetched} of {len(self.scraped_jobs)} jobs")
 
         self.log_info(f"Scraped {len(self.scraped_jobs)} jobs")
         return self.scraped_jobs
 
-    def _find_page_param(self, seen: set) -> Optional[str]:
-        for param in PAGE_PARAM_CANDIDATES:
-            time.sleep(self.delay_seconds)
-            try:
-                items, _ = self._fetch_page({param: 2})
-            except (requests.RequestException, ValueError):
-                continue
-            if self._add_jobs(items, seen):
-                self.log_info(f"Paging with ?{param}=N")
-                return param
-        return None
+    def get_details(self, job_id: str) -> Optional[Dict]:
+        """Fields to add to a job from its full circular.
 
-    def _fetch_page(self, params: Optional[Dict]) -> Tuple[List[Dict], int]:
-        response = self.session.get(self.LIST_URL, params=params, timeout=30)
-        response.raise_for_status()
-        return parse_ng_state(response.text)
+        None when the request failed (worth retrying later); only
+        {"detailsFetched": False} when bdjobs no longer has the job.
+        """
+        time.sleep(self.delay_seconds)
+        try:
+            response = self.session.get(
+                DETAILS_API,
+                params={"jobId": job_id, "ln": 1, "IsCorporate": "false", "drafted": 0},
+                timeout=30,
+            )
+            response.raise_for_status()
+            body = response.json()
+        except (requests.RequestException, ValueError) as e:
+            self.log_error(f"Details for job {job_id} failed: {e}")
+            return None
+        data = body.get("data") if isinstance(body, dict) else None
+        if not isinstance(body, dict) or body.get("statuscode") != "0" or not data \
+                or str(data[0].get("JobFound", "True")).lower() != "true":
+            return {"detailsFetched": False}
+        return parse_details(data[0])
 
     def _add_jobs(self, items: List[Dict], seen: set) -> int:
         """Convert and keep unseen jobs; returns how many were new."""
@@ -114,6 +135,40 @@ class BDJobsScraper(BaseScraper):
         )
 
 
+def bdjobs_id(link: Optional[str]) -> Optional[str]:
+    match = re.search(r"[?&]id=(\d+)", link or "")
+    return match.group(1) if match else None
+
+
+def parse_details(data: Dict) -> Dict:
+    """Job fields from the details API: the circular's sections and extras."""
+    sections = {}
+    for key, field in DETAIL_SECTIONS.items():
+        text = html_to_text(data.get(field) or "")
+        if text:
+            sections[key] = text
+
+    fields: Dict = {"details": sections, "detailsFetched": True}
+    if sections.get("responsibilities"):
+        fields["description"] = sections["responsibilities"]
+
+    skills = [s.strip() for s in (data.get("SkillsRequired") or "").split(",") if s.strip()]
+    if skills:
+        fields["requiredSkills"] = skills
+
+    salary = _clean(data.get("JobSalaryRangeText") or data.get("JobSalaryRange") or "")
+    if salary and salary.lower() not in ("negotiable", "--"):
+        fields["salaryMin"] = salary
+
+    for target, field in (("vacancies", "JobVacancies"), ("workplace", "JobWorkPlace"),
+                          ("companyAddress", "CompanyAddress"), ("companyWebsite", "CompanyWeb"),
+                          ("jobLocationDetail", "JobLocation")):
+        value = _clean(data.get(field) or "")
+        if value and value not in ("0", "NA"):
+            fields[target] = value
+    return fields
+
+
 def parse_ng_state(page_html: str) -> Tuple[List[Dict], int]:
     """Return (job items, total pages) from the page's embedded ng-state JSON."""
     soup = BeautifulSoup(page_html, "lxml")
@@ -149,12 +204,34 @@ def parse_experience(text: Optional[str]) -> Tuple[Optional[int], Optional[int]]
     return None, None
 
 
+_BLOCK_TAGS = ("p", "div", "h1", "h2", "h3", "h4", "h5", "h6", "ul", "ol", "tr")
+
+
 def html_to_text(value: str) -> str:
-    return BeautifulSoup(value, "lxml").get_text("\n", strip=True) if value else ""
+    """Readable text: one paragraph per line and list items as '• item'."""
+    if not value or not value.strip():
+        return ""
+    if "<" not in value:
+        return "\n".join(line for line in (_clean(l) for l in value.splitlines()) if line)
+    soup = BeautifulSoup(value, "lxml")
+    for br in soup.find_all("br"):
+        br.replace_with(NavigableString("\n"))
+    # Innermost first, so a nested list is folded into its parent item.
+    for li in reversed(soup.find_all("li")):
+        li.replace_with(NavigableString(f"\n• {_clean(li.get_text(' '))}\n"))
+    for tag in soup.find_all(_BLOCK_TAGS):
+        tag.insert_before(NavigableString("\n"))
+        tag.insert_after(NavigableString("\n"))
+    lines = (_clean(line) for line in soup.get_text().splitlines())
+    return "\n".join(line for line in lines if line and line != "•")
+
+
+def _clean(text: str) -> str:
+    return re.sub(r"\s+", " ", text or "").strip()
 
 
 if __name__ == "__main__":
-    scraper = BDJobsScraper(max_pages=2)
+    scraper = BDJobsScraper()
     jobs = scraper.scrape()
     print(f"Scraped {len(jobs)} jobs; stats: {scraper.get_stats()}")
     if jobs:

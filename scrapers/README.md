@@ -8,7 +8,7 @@ the ones that wait for an admin or moderator in **Review jobs**.
 
 | Source | File | How it reads jobs |
 |--------|------|-------------------|
-| bdjobs.com | `bdjobs_scraper.py` | Reads the job list JSON embedded in `https://bdjobs.com/h/jobs/` (`<script id="ng-state">`): the newest ~60 jobs |
+| bdjobs.com | `bdjobs_scraper.py` | Reads the job list JSON embedded in `https://bdjobs.com/h/jobs/` (`<script id="ng-state">`): the newest ~60 jobs. Each job's full circular (responsibilities, requirements, benefits, company, skills, vacancies) comes from the details API its page calls |
 | Sites added in the app | `selector_scraper.py` | CSS selectors saved by an admin under Account → Job sources (Firestore `scraperSources`) |
 | Newspaper PDFs | `newspaper_scraper.py` | OCR (Tesseract) over PDFs in `./newspapers/`; run manually, not part of the scheduled job |
 
@@ -24,6 +24,10 @@ often is what keeps up with new postings; jobs already stored are skipped.
 - `ingest`: scrape and store new jobs (the default)
 - `dry-run`: scrape and print a sample, no Firestore
 - `inspect` / `probe`: print page structure or JSON shape, used to fix a scraper after a site change
+- `backfill`: one-off, adds the full circular to bdjobs jobs stored before details were fetched
+
+A job whose detail request fails is flagged `detailsPending` and retried by
+later runs; one bdjobs no longer has is marked `detailsFetched: false`.
 
 `ingest` needs the service-account JSON in the repository secret
 `FIREBASE_CREDENTIALS` (Settings → Secrets and variables → Actions). A run

@@ -1,6 +1,7 @@
 """Command-line entry point for the scheduled scraper run.
 
     python run_scrapers.py --mode ingest    # scrape and store new jobs (needs credentials)
+    python run_scrapers.py --mode backfill  # add full details to jobs stored before they were fetched
     python run_scrapers.py --mode dry-run   # scrape and print, no Firestore
     python run_scrapers.py --mode inspect [URL ...]  # print page structure to fix selectors
     python run_scrapers.py --mode probe --keyword K URL ...  # show JSON shape / code around K
@@ -34,6 +35,25 @@ def scrape_all() -> Dict[str, List[Dict]]:
             print(f"  error: {error}")
         results[scraper.source_name] = jobs
     return results
+
+
+def backfill_bdjobs_details(ingestion, limit: int = 120, scan_all: bool = False) -> int:
+    """Fetch the full circular for stored bdjobs jobs that don't have it yet."""
+    from bdjobs_scraper import bdjobs_id
+    from firestore_ingestion import details_fields
+
+    scraper = BDJobsScraper()
+    updated = 0
+    for doc_id, data in ingestion.jobs_missing_details("bdjobs", limit, scan_all=scan_all):
+        job_id = bdjobs_id(data.get("applyLink"))
+        details = scraper.get_details(job_id) if job_id else {"detailsFetched": False}
+        if details is None:
+            continue  # request failed; try again next run
+        ingestion.update_job(doc_id, {**details_fields(details), "detailsPending": False})
+        updated += bool(details.get("detailsFetched"))
+    if updated:
+        print(f"[bdjobs] added full details to {updated} older jobs")
+    return updated
 
 
 def run_app_sources(ingestion) -> int:
@@ -195,7 +215,7 @@ def check_credentials() -> bool:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--mode", choices=["ingest", "dry-run", "inspect", "probe"], default="dry-run")
+    parser.add_argument("--mode", choices=["ingest", "dry-run", "inspect", "probe", "backfill"], default="dry-run")
     parser.add_argument("--keyword", default="GetJobSearch")
     parser.add_argument("urls", nargs="*")
     args = parser.parse_args()
@@ -207,8 +227,14 @@ def main() -> int:
         probe(args.urls, args.keyword)
         return 0
 
-    if args.mode == "ingest" and not check_credentials():
+    if args.mode in ("ingest", "backfill") and not check_credentials():
         return 1
+    if args.mode == "backfill":
+        from firestore_ingestion import FirestoreIngestion
+
+        # One-off: jobs stored before full details were fetched.
+        backfill_bdjobs_details(FirestoreIngestion(), limit=2000, scan_all=True)
+        return 0
 
     results = scrape_all()
     total = sum(len(jobs) for jobs in results.values())
@@ -237,6 +263,7 @@ def main() -> int:
             if jobs:
                 stats = ingestion.ingest_jobs(jobs, source)
                 print(f"[{source}] inserted={stats['inserted']} already_stored={stats['duplicates']} errors={stats['errors']}")
+        backfill_bdjobs_details(ingestion)
         run_app_sources(ingestion)
 
     if total == 0:

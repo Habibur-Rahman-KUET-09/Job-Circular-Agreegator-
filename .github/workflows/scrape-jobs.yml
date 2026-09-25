@@ -8,9 +8,9 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "ingest = save to Firestore, dry-run = print only, inspect = debug page structure"
+        description: "ingest = save to Firestore, dry-run = print only, inspect/probe = debug a page, backfill = add full details to older jobs"
         type: choice
-        options: [ingest, dry-run, inspect, probe]
+        options: [ingest, dry-run, inspect, probe, backfill]
         default: ingest
       urls:
         description: "inspect/probe only: space-separated URLs"
@@ -50,7 +50,7 @@ jobs:
           KEYWORD: ${{ inputs.keyword || 'GetJobSearch' }}
           FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_CREDENTIALS }}
         run: |
-          if [ "$MODE" = "ingest" ]; then
+          if [ "$MODE" = "ingest" ] || [ "$MODE" = "backfill" ]; then
             if [ -z "$FIREBASE_CREDENTIALS" ]; then
               echo "::error::Add the service-account JSON as the FIREBASE_CREDENTIALS repository secret."
               exit 1
