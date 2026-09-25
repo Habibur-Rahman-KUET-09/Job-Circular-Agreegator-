@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../l10n/locale_provider.dart';
 import '../l10n/strings.dart';
 
-const sopUrl = 'https://shondhan-58fe0.web.app/sop';
+const sopUrl = 'https://habibur-rahman-kuet-09.github.io/Job-Circular-Agreegator-/sop.html';
 
 /// Layout of the account page; [AccountScreen] supplies the data and actions.
 class AccountView extends StatelessWidget {
