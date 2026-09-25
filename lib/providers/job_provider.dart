@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../models/index.dart';
+import '../models/job_filter.dart';
 import '../services/index.dart';
 
 class JobProvider extends ChangeNotifier {
@@ -8,84 +9,49 @@ class JobProvider extends ChangeNotifier {
   JobProvider(this._jobService);
 
   List<Job> _jobs = [];
-  List<Job> _filteredJobs = [];
+  List<Job> _visibleJobs = [];
   Job? _selectedJob;
   bool _isLoading = false;
   String? _error;
+  JobFilter _filter = const JobFilter();
 
-  List<Job> get jobs => _filteredJobs.isEmpty ? _jobs : _filteredJobs;
+  /// Every loaded job, before filtering.
+  List<Job> get allJobs => _jobs;
+
+  /// The loaded jobs that match [filter], in its sort order.
+  List<Job> get jobs => _visibleJobs;
   Job? get selectedJob => _selectedJob;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  JobFilter get filter => _filter;
 
-  // Current filter state
-  String? _searchTerm;
-  String? _selectedLocation;
-  String? _selectedJobType;
-  String? _selectedCategory;
-  List<String>? _selectedSkills;
-
-  String? get searchTerm => _searchTerm;
-  String? get selectedLocation => _selectedLocation;
-  String? get selectedJobType => _selectedJobType;
-  String? get selectedCategory => _selectedCategory;
-  List<String>? get selectedSkills => _selectedSkills;
+  Map<JobCategory, int> get categoryCounts => _filter.categoryCounts(_jobs);
 
   // Fetch all jobs
   Future<void> fetchAllJobs() async {
     _setLoading(true);
     _setError(null);
     try {
-      _jobs = await _jobService.getAllJobs();
-      _filteredJobs = _jobs;
-      notifyListeners();
+      _setJobs(await _jobService.getAllJobs());
     } catch (e) {
       _setError(e.toString());
+      notifyListeners();
     } finally {
       _setLoading(false);
     }
   }
 
-  // Search and filter jobs
-  Future<void> searchJobs({
-    String? searchTerm,
-    String? location,
-    String? jobType,
-    String? category,
-    List<String>? skills,
-  }) async {
-    _setLoading(true);
-    _setError(null);
-    try {
-      _searchTerm = searchTerm;
-      _selectedLocation = location;
-      _selectedJobType = jobType;
-      _selectedCategory = category;
-      _selectedSkills = skills;
-
-      _filteredJobs = await _jobService.searchJobs(
-        searchTerm: searchTerm,
-        location: location,
-        jobType: jobType,
-        category: category,
-        skills: skills,
-      );
-      notifyListeners();
-    } catch (e) {
-      _setError(e.toString());
-    } finally {
-      _setLoading(false);
-    }
+  void setFilter(JobFilter filter) {
+    _filter = filter;
+    _visibleJobs = _filter.apply(_jobs);
+    notifyListeners();
   }
 
-  // Clear filters
-  Future<void> clearFilters() async {
-    _searchTerm = null;
-    _selectedLocation = null;
-    _selectedJobType = null;
-    _selectedCategory = null;
-    _selectedSkills = null;
-    _filteredJobs = _jobs;
+  void clearFilters() => setFilter(const JobFilter());
+
+  void _setJobs(List<Job> jobs) {
+    _jobs = jobs;
+    _visibleJobs = _filter.apply(_jobs);
     notifyListeners();
   }
 
@@ -114,9 +80,7 @@ class JobProvider extends ChangeNotifier {
     _setLoading(true);
     _setError(null);
     try {
-      _jobs = await _jobService.getJobsByPlatform(platform);
-      _filteredJobs = _jobs;
-      notifyListeners();
+      _setJobs(await _jobService.getJobsByPlatform(platform));
     } catch (e) {
       _setError(e.toString());
     } finally {
@@ -129,9 +93,7 @@ class JobProvider extends ChangeNotifier {
     _setLoading(true);
     _setError(null);
     try {
-      _jobs = await _jobService.getJobsByCategory(category);
-      _filteredJobs = _jobs;
-      notifyListeners();
+      _setJobs(await _jobService.getJobsByCategory(category));
     } catch (e) {
       _setError(e.toString());
     } finally {
@@ -144,9 +106,7 @@ class JobProvider extends ChangeNotifier {
     _setLoading(true);
     _setError(null);
     try {
-      _jobs = await _jobService.getExpiringJobs(daysFromNow: daysFromNow);
-      _filteredJobs = _jobs;
-      notifyListeners();
+      _setJobs(await _jobService.getExpiringJobs(daysFromNow: daysFromNow));
     } catch (e) {
       _setError(e.toString());
     } finally {

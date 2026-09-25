@@ -24,6 +24,12 @@ Job _fullJob() => Job(
       scrapedAt: DateTime.utc(2026, 9, 1, 6),
       viewCount: 12,
       applicationCount: 3,
+      details: const {'responsibilities': '• Build apps', 'benefits': '• Lunch'},
+      vacancies: '2',
+      workplace: 'Work at office',
+      locationDetail: 'Dhaka (Banani)',
+      companyAddress: 'Road 11, Banani',
+      companyWebsite: 'https://acme.example',
     );
 
 Map<String, dynamic> _minimalJson() => {
@@ -122,5 +128,18 @@ void main() {
       expect(updated.deadline, original.deadline);
       expect(updated.requiredSkills, original.requiredSkills);
     });
+  });
+
+  test('reads the full circular stored by the scraper', () {
+    final job = Job.fromJson({
+      ..._minimalJson(),
+      'details': {'responsibilities': '• Count cash', 'education': '  ', 'experience': null},
+      'vacancies': '3',
+      'jobLocationDetail': 'Khulna (Sadar)',
+    });
+    expect(job.details, {'responsibilities': '• Count cash'});
+    expect(job.vacancies, '3');
+    expect(job.locationDetail, 'Khulna (Sadar)');
+    expect(Job.fromJson(_minimalJson()).details, isEmpty);
   });
 }

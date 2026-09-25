@@ -35,6 +35,16 @@ class Job {
   final String? salaryMin;
   final String? salaryMax;
 
+  // Full circular, when the source provides it: section key
+  // (responsibilities, education, experience, requirements, benefits,
+  // process, company) -> text with one paragraph or "• item" per line.
+  final Map<String, String> details;
+  final String? vacancies;
+  final String? workplace;
+  final String? locationDetail;
+  final String? companyAddress;
+  final String? companyWebsite;
+
   // Source info
   final String source; // 'bdjobs', 'chakri.com', 'newspaper:prothomalo', 'manual'
   final JobSourceType sourceType;
@@ -72,6 +82,12 @@ class Job {
     this.maxYearsExperience,
     this.salaryMin,
     this.salaryMax,
+    this.details = const {},
+    this.vacancies,
+    this.workplace,
+    this.locationDetail,
+    this.companyAddress,
+    this.companyWebsite,
     this.applyLink,
     this.deadline,
     this.scrapedAt,
@@ -101,6 +117,15 @@ class Job {
       maxYearsExperience: json['maxYearsExperience'] as int?,
       salaryMin: json['salaryMin'] as String?,
       salaryMax: json['salaryMax'] as String?,
+      details: {
+        for (final e in ((json['details'] as Map?) ?? const {}).entries)
+          if (e.value is String && (e.value as String).trim().isNotEmpty) '${e.key}': e.value as String,
+      },
+      vacancies: json['vacancies'] as String?,
+      workplace: json['workplace'] as String?,
+      locationDetail: json['jobLocationDetail'] as String?,
+      companyAddress: json['companyAddress'] as String?,
+      companyWebsite: json['companyWebsite'] as String?,
       applyLink: json['applyLink'] as String?,
       deadline: json['deadline'] != null ? DateTime.parse(json['deadline'] as String) : null,
       scrapedAt: json['scrapedAt'] != null ? DateTime.parse(json['scrapedAt'] as String) : null,
@@ -128,6 +153,12 @@ class Job {
     'maxYearsExperience': maxYearsExperience,
     'salaryMin': salaryMin,
     'salaryMax': salaryMax,
+    if (details.isNotEmpty) 'details': details,
+    if (vacancies != null) 'vacancies': vacancies,
+    if (workplace != null) 'workplace': workplace,
+    if (locationDetail != null) 'jobLocationDetail': locationDetail,
+    if (companyAddress != null) 'companyAddress': companyAddress,
+    if (companyWebsite != null) 'companyWebsite': companyWebsite,
     'applyLink': applyLink,
     'deadline': deadline?.toIso8601String(),
     'scrapedAt': scrapedAt?.toIso8601String(),
@@ -179,6 +210,12 @@ class Job {
       maxYearsExperience: maxYearsExperience ?? this.maxYearsExperience,
       salaryMin: salaryMin ?? this.salaryMin,
       salaryMax: salaryMax ?? this.salaryMax,
+      details: details,
+      vacancies: vacancies,
+      workplace: workplace,
+      locationDetail: locationDetail,
+      companyAddress: companyAddress,
+      companyWebsite: companyWebsite,
       applyLink: applyLink ?? this.applyLink,
       deadline: deadline ?? this.deadline,
       scrapedAt: scrapedAt ?? this.scrapedAt,

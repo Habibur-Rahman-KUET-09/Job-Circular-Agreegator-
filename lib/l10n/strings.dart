@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../models/application.dart';
 import '../models/job.dart';
+import '../utils/bangla_utils.dart';
 import 'locale_provider.dart';
 
 /// Every user-facing string in the app, in Bangla and English. Screens read
@@ -267,13 +268,13 @@ class Strings {
         ),
         (
           _t('খুঁজুন ও ফিল্টার করুন', 'Search and filter'),
-          _t('উপরের ফিল্টার বাটন দিয়ে শিরোনাম, বিভাগ বা এলাকা অনুযায়ী চাকরি খুঁজুন।',
-              'Use the filter button at the top to search by title, category or location.'),
+          _t('উপরের সার্চ বক্সে লিখুন, বিভাগের চিপ চাপুন, আর ফিল্টার বাটনে ধরন, এলাকা, অভিজ্ঞতা বা শেষ তারিখ অনুযায়ী বাছাই করুন।',
+              'Type in the search box, tap a category chip, and use Filters for job type, location, experience or deadline.'),
         ),
         (
           _t('বিস্তারিত দেখে আবেদন করুন', 'Open a job and apply'),
-          _t('চাকরিতে ট্যাপ করলে বিস্তারিত আসবে। "এখনই আবেদন করুন" চাপলে মূল বিজ্ঞপ্তি অ্যাপের ভেতরেই খুলবে।',
-              'Tap a job for details. "Apply now" opens the original posting inside the app.'),
+          _t('চাকরিতে ট্যাপ করলে পূর্ণ বিজ্ঞপ্তি (দায়িত্ব, যোগ্যতা, সুযোগ-সুবিধা) আসবে। "এখনই আবেদন করুন" চাপলে মূল বিজ্ঞপ্তি অ্যাপের ভেতরেই খুলবে।',
+              'Tap a job for the full circular (responsibilities, requirements, benefits). "Apply now" opens the original posting inside the app.'),
         ),
         (
           _t('সংরক্ষণ করুন', 'Save jobs'),
@@ -348,4 +349,58 @@ class Strings {
       'No more jobs will be collected from it. Jobs already collected stay.');
   String get notRunYet => _t('এখনো চালানো হয়নি', 'Not run yet');
   String lastRun(String when, int count) => _t('শেষ রান: $when · $countটি চাকরি', 'Last run: $when · $count jobs');
+
+  // ---- Job list filters ----
+  String get allCategories => _t('সব', 'All');
+  String get filters => _t('ফিল্টার', 'Filters');
+  String get searchJobsField => _t('পদ, প্রতিষ্ঠান বা স্থান খুঁজুন', 'Search title, company or place');
+  String jobCount(int n) => _t('${number(n)}টি চাকরি', '$n jobs');
+  String showJobs(int n) => _t('${number(n)}টি চাকরি দেখুন', 'Show $n jobs');
+  String get clearFilters => _t('ফিল্টার মুছুন', 'Clear filters');
+  String get sortBy => _t('সাজানো', 'Sort by');
+  String get sortNewest => _t('নতুন আগে', 'Newest first');
+  String get sortDeadline => _t('শেষ তারিখ আগে', 'Deadline first');
+  String get experienceFilter => _t('অভিজ্ঞতা', 'Experience');
+  String get anyOption => _t('যেকোনো', 'Any');
+  String get fresher => _t('ফ্রেশার', 'Fresher');
+  String upToYears(int n) => _t('${number(n)} বছর পর্যন্ত', 'Up to $n years');
+  String get postedWithin => _t('প্রকাশিত', 'Posted');
+  String get postedToday => _t('আজ', 'Today');
+  String lastDays(int n) => _t('গত ${number(n)} দিন', 'Last $n days');
+  String get closingSoon => _t('শিগগিরই শেষ (৭ দিনের মধ্যে)', 'Closing soon (within 7 days)');
+  String get salaryMentioned => _t('বেতন উল্লেখ আছে', 'Salary mentioned');
+  String get showExpired => _t('মেয়াদোত্তীর্ণ চাকরিও দেখান', 'Also show expired jobs');
+  String daysLeft(int n) => n <= 0 ? _t('আজ শেষ দিন', 'Last day today') : _t('${number(n)} দিন বাকি', '$n days left');
+  String get expired => _t('মেয়াদ শেষ', 'Expired');
+  String get noJobsMatchFilters =>
+      _t('এই ফিল্টারে কোনো চাকরি নেই। ফিল্টার বদলে দেখুন।', 'No jobs match these filters. Try changing them.');
+
+  /// Digits in the current language.
+  String number(int n) => _bn ? BanglaMonths.toBanglaDigits(n) : '$n';
+
+  // ---- Job details ----
+  String detailSection(String key) => switch (key) {
+        'responsibilities' => _t('কাজের বিবরণ ও দায়িত্ব', 'Job context & responsibilities'),
+        'education' => _t('শিক্ষাগত যোগ্যতা', 'Education'),
+        'experience' => _t('অভিজ্ঞতা', 'Experience'),
+        'requirements' => _t('অন্যান্য যোগ্যতা', 'Additional requirements'),
+        'benefits' => _t('সুযোগ-সুবিধা', 'Compensation & benefits'),
+        'process' => _t('নিয়োগ প্রক্রিয়া', 'Recruitment process'),
+        'company' => _t('প্রতিষ্ঠান সম্পর্কে', 'About the company'),
+        _ => key,
+      };
+  String get vacancies => _t('পদসংখ্যা', 'Vacancies');
+  String get workplace => _t('কর্মস্থল', 'Workplace');
+  String get companyAddress => _t('ঠিকানা', 'Address');
+  String get website => _t('ওয়েবসাইট', 'Website');
+  String yearsRange(int? min, int? max) {
+    if (min != null && max != null) return _t('${number(min)}–${number(max)} বছর', '$min–$max years');
+    if (min != null) return _t('কমপক্ষে ${number(min)} বছর', 'At least $min years');
+    return _t('সর্বোচ্চ ${number(max ?? 0)} বছর', 'Up to ${max ?? 0} years');
+  }
+  String get fullCircularOnSite => _t(
+      'এই চাকরির পূর্ণ বিজ্ঞপ্তি এখনো আনা হয়নি। মূল ওয়েবসাইটে দেখুন।',
+      'The full circular for this job hasn\'t been fetched yet. See it on the original website.');
+  String get viewOriginal => _t('মূল বিজ্ঞপ্তি দেখুন', 'View original circular');
 }
+
