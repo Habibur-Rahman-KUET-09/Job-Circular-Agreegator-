@@ -1,8 +1,8 @@
 # Job scrapers
 
-Collects job postings and stores them in Firestore as `pending` jobs. An
-admin or moderator approves them in the app's **Review jobs** screen before
-they appear in the feed.
+Collects job postings and stores them in Firestore as `approved` jobs, so
+they appear in the app's feed right away. Jobs added by hand in the app are
+the ones that wait for an admin or moderator in **Review jobs**.
 
 ## Sources
 

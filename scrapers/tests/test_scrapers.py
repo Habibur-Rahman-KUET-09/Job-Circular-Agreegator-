@@ -19,6 +19,13 @@ class _Scraper(BaseScraper):
 class _FakeDoc:
     def __init__(self, store, doc_id):
         self.store, self.id = store, doc_id
+        self.reference = self
+
+    def to_dict(self):
+        return dict(self.store[self.id])
+
+    def update(self, data):
+        self.store[self.id].update(data)
 
     def create(self, data, **kwargs):
         if self.id in self.store:
@@ -27,11 +34,19 @@ class _FakeDoc:
 
 
 class _FakeCollection:
-    def __init__(self, store):
-        self.store = store
+    def __init__(self, store, filters=()):
+        self.store, self.filters = store, filters
 
     def document(self, doc_id):
         return _FakeDoc(self.store, doc_id)
+
+    def where(self, field, op, value):
+        assert op == "=="
+        return _FakeCollection(self.store, self.filters + ((field, value),))
+
+    def stream(self):
+        return [_FakeDoc(self.store, doc_id) for doc_id, data in list(self.store.items())
+                if all(data.get(f) == v for f, v in self.filters)]
 
 
 class _FakeDb:
@@ -105,13 +120,26 @@ class IngestionTest(unittest.TestCase):
         self.assertEqual(second["duplicates"], 1)
         self.assertEqual(len(ingestion.db.store), 1)
 
-    def test_stored_job_is_pending_without_the_temporary_id(self):
+    def test_scraped_jobs_are_published_without_review(self):
         ingestion = _ingestion()
         ingestion.ingest_jobs([self._job()], "bdjobs")
         stored = next(iter(ingestion.db.store.values()))
 
-        self.assertEqual(stored["status"], "pending")
+        self.assertEqual(stored["status"], "approved")
+        self.assertEqual(stored["sourceType"], "scraped")
         self.assertNotIn("id", stored)
+
+    def test_approve_pending_scraped_leaves_manual_jobs_pending(self):
+        ingestion = _ingestion()
+        ingestion.db.store.update({
+            "s1": {"sourceType": "scraped", "status": "pending"},
+            "s2": {"sourceType": "scraped", "status": "rejected"},
+            "m1": {"sourceType": "manual", "status": "pending"},
+        })
+        self.assertEqual(ingestion.approve_pending_scraped(), 1)
+        self.assertEqual(ingestion.db.store["s1"]["status"], "approved")
+        self.assertEqual(ingestion.db.store["s2"]["status"], "rejected")
+        self.assertEqual(ingestion.db.store["m1"]["status"], "pending")
 
     def test_doc_id_falls_back_to_title_and_company_without_a_link(self):
         a = job_doc_id({"title": "Officer ", "company": "Sonali Bank", "applyLink": None}, "newspaper")

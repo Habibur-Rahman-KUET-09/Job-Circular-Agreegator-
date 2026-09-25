@@ -62,7 +62,7 @@ class BaseScraper(ABC):
             "applyLink": apply_link,
             "scrapedAt": datetime.now().isoformat(),
             "postedBy": None,
-            "status": "pending",
+            "status": "approved",
             "viewCount": 0,
             "applicationCount": 0,
             "createdAt": datetime.now().isoformat(),

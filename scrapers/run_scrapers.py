@@ -190,6 +190,9 @@ def main() -> int:
         from firestore_ingestion import FirestoreIngestion
 
         ingestion = FirestoreIngestion()
+        approved = ingestion.approve_pending_scraped()
+        if approved:
+            print(f"Published {approved} scraped jobs that were waiting for review")
         for source, jobs in results.items():
             if jobs:
                 stats = ingestion.ingest_jobs(jobs, source)

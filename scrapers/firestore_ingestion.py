@@ -75,7 +75,9 @@ class FirestoreIngestion:
         now = datetime.now().isoformat()
         job_data = {k: v for k, v in job.items() if k != "id"}
         job_data.update({
-            "status": "pending",
+            # Scraped jobs are published straight away; only jobs entered by hand
+            # in the app wait for review.
+            "status": "approved",
             "source": source,
             "createdAt": now,
             "updatedAt": now,
@@ -89,6 +91,18 @@ class FirestoreIngestion:
             return "duplicate"
         logger.info(f"Inserted job: {job['title']} ({doc_ref.id})")
         return "inserted"
+
+    def approve_pending_scraped(self) -> int:
+        """Publish scraped jobs stored as pending before auto-approval existed."""
+        docs = self.db.collection(self.jobs_collection) \
+            .where("sourceType", "==", "scraped") \
+            .where("status", "==", "pending") \
+            .stream()
+        count = 0
+        for doc in docs:
+            doc.reference.update({"status": "approved", "updatedAt": datetime.now().isoformat()})
+            count += 1
+        return count
 
     def approve_jobs(self, job_ids: List[str]) -> Dict:
         """Approve multiple jobs (moderator action)."""
