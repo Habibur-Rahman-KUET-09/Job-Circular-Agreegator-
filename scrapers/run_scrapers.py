@@ -122,6 +122,37 @@ def probe(urls: List[str], keyword: str) -> None:
                     print(f"--- [{word}] {source} @ {match.start()}\n{text[start:match.end() + 700]}\n")
 
 
+def check_credentials() -> bool:
+    """Fail fast on a bad key; otherwise Firestore retries the auth error until the job times out."""
+    import os
+
+    import google.auth.transport.requests
+    from google.auth.exceptions import RefreshError
+    from google.oauth2 import service_account
+
+    path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+    if not path:
+        print("GOOGLE_APPLICATION_CREDENTIALS is not set.")
+        return False
+    try:
+        with open(path) as f:
+            info = json.load(f)
+        creds = service_account.Credentials.from_service_account_info(
+            info, scopes=["https://www.googleapis.com/auth/datastore"])
+    except (OSError, ValueError, KeyError) as e:
+        print(f"The service-account JSON could not be read ({type(e).__name__}); paste the whole file into the secret.")
+        return False
+    key_id = (info.get("private_key_id") or "")[:8]
+    print(f"Using key {key_id}... of {info.get('client_email')} (project {info.get('project_id')})")
+    try:
+        creds.refresh(google.auth.transport.requests.Request())
+    except RefreshError as e:
+        print(f"Google rejected this key: {e.args[0] if e.args else e}")
+        print("It was probably deleted. Create a new key and put it in the FIREBASE_CREDENTIALS secret.")
+        return False
+    return True
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", choices=["ingest", "dry-run", "inspect", "probe"], default="dry-run")
@@ -135,6 +166,9 @@ def main() -> int:
     if args.mode == "probe":
         probe(args.urls, args.keyword)
         return 0
+
+    if args.mode == "ingest" and not check_credentials():
+        return 1
 
     results = scrape_all()
     total = sum(len(jobs) for jobs in results.values())

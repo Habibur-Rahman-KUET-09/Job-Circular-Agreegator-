@@ -20,7 +20,7 @@ class _FakeDoc:
     def __init__(self, store, doc_id):
         self.store, self.id = store, doc_id
 
-    def create(self, data):
+    def create(self, data, **kwargs):
         if self.id in self.store:
             raise AlreadyExists("exists")
         self.store[self.id] = data

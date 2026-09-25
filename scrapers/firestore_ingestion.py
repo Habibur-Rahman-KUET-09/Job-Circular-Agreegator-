@@ -84,7 +84,7 @@ class FirestoreIngestion:
         try:
             # create() fails if the document exists, so a re-scraped job never
             # overwrites a moderator's approve/reject decision.
-            doc_ref.create(job_data)
+            doc_ref.create(job_data, timeout=60)
         except AlreadyExists:
             return "duplicate"
         logger.info(f"Inserted job: {job['title']} ({doc_ref.id})")
