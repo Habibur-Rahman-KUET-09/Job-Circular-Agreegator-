@@ -77,7 +77,7 @@ def run_app_sources(ingestion) -> int:
         line = f"[{scraper.display_name}] {len(jobs)} jobs"
         if jobs:
             stats = ingestion.ingest_jobs(jobs, scraper.source_name, id_key=scraper.key)
-            line += f", inserted={stats['inserted']} already_stored={stats['duplicates']} errors={stats['errors']}"
+            line += f", inserted={stats['inserted']} details_added={stats['updated']} already_stored={stats['duplicates']} errors={stats['errors']}"
         print(line + (f" ({error})" if error else ""))
         try:
             ingestion.record_source_run(source_id, len(jobs), error)
@@ -262,7 +262,7 @@ def main() -> int:
         for source, jobs in results.items():
             if jobs:
                 stats = ingestion.ingest_jobs(jobs, source)
-                print(f"[{source}] inserted={stats['inserted']} already_stored={stats['duplicates']} errors={stats['errors']}")
+                print(f"[{source}] inserted={stats['inserted']} details_added={stats['updated']} already_stored={stats['duplicates']} errors={stats['errors']}")
         backfill_bdjobs_details(ingestion)
         run_app_sources(ingestion)
 
