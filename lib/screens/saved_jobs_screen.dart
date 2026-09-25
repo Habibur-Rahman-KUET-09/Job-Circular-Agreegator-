@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../l10n/strings.dart';
 import '../models/saved_job.dart';
 import '../providers/saved_job_provider.dart';
+import '../utils/safe_padding.dart';
 
 class SavedJobsScreen extends StatefulWidget {
   const SavedJobsScreen({super.key});
@@ -75,7 +76,7 @@ class _SavedJobsScreenState extends State<SavedJobsScreen> {
                     )
                   : ListView.builder(
                       itemCount: savedJobs.length,
-                      padding: const EdgeInsets.all(8),
+                      padding: safeBodyPadding(context, amount: 8),
                       itemBuilder: (context, index) {
                         final savedJob = savedJobs[index];
                         return SavedJobCard(

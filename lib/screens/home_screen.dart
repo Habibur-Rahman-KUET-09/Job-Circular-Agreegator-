@@ -12,6 +12,7 @@ import '../services/auth_service.dart';
 import '../services/saved_job_service.dart';
 import 'account_screen.dart';
 import 'job_details_screen.dart';
+import '../utils/safe_padding.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -93,7 +94,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       : ListView.builder(
                           physics: const AlwaysScrollableScrollPhysics(),
                           itemCount: jobs.length,
-                          padding: const EdgeInsets.all(8),
+                          padding: safeBodyPadding(context, amount: 8, fab: true),
                           itemBuilder: (context, index) {
                             final job = jobs[index];
                             return JobCard(

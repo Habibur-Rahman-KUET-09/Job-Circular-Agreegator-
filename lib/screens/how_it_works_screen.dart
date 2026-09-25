@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../l10n/strings.dart';
 import '../utils/open_link.dart';
 import 'account_view.dart';
+import '../utils/safe_padding.dart';
 
 class HowItWorksScreen extends StatelessWidget {
   const HowItWorksScreen({super.key});
@@ -22,7 +23,7 @@ class HowItWorksScreen extends StatelessWidget {
         title: Text(s.howItWorks),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(12),
+        padding: safeBodyPadding(context, amount: 12),
         children: [
           for (var i = 0; i < steps.length; i++)
             Card(

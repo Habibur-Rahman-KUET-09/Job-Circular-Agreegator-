@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../l10n/strings.dart';
 import '../models/application.dart';
 import '../providers/application_provider.dart';
+import '../utils/safe_padding.dart';
 
 class ApplicationsScreen extends StatefulWidget {
   const ApplicationsScreen({super.key});
@@ -117,7 +118,7 @@ class _ApplicationsScreenState extends State<ApplicationsScreen>
 
     return ListView.builder(
       itemCount: applications.length,
-      padding: const EdgeInsets.all(8),
+      padding: safeBodyPadding(context, amount: 8),
       itemBuilder: (context, index) {
         final application = applications[index];
         return ApplicationCard(
@@ -148,7 +149,7 @@ class _ApplicationsScreenState extends State<ApplicationsScreen>
 
     return ListView.builder(
       itemCount: filtered.length,
-      padding: const EdgeInsets.all(8),
+      padding: safeBodyPadding(context, amount: 8),
       itemBuilder: (context, index) {
         final application = filtered[index];
         return ApplicationCard(

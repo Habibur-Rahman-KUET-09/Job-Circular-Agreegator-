@@ -6,6 +6,7 @@ import '../models/job.dart';
 import '../services/job_service.dart';
 import '../utils/open_link.dart';
 import '../widgets/confirm_dialog.dart';
+import '../utils/safe_padding.dart';
 
 class JobReviewScreen extends StatefulWidget {
   final JobService? jobService;
@@ -99,7 +100,7 @@ class _JobReviewScreenState extends State<JobReviewScreen> {
       return Center(child: Text(s.noPendingJobs));
     }
     return ListView.builder(
-      padding: const EdgeInsets.all(8),
+      padding: safeBodyPadding(context, amount: 8),
       itemCount: jobs.length,
       itemBuilder: (context, index) {
         final job = jobs[index];

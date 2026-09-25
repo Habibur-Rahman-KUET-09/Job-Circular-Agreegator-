@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../l10n/strings.dart';
 import '../providers/notification_provider.dart';
 import '../services/auth_service.dart';
+import '../utils/safe_padding.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
   const NotificationSettingsScreen({super.key});
@@ -42,7 +43,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     return Scaffold(
       appBar: AppBar(title: Text(s.notificationSettings)),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: safeBodyPadding(context, amount: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

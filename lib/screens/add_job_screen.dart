@@ -5,6 +5,7 @@ import '../l10n/strings.dart';
 import '../models/job.dart';
 import '../services/job_service.dart';
 import '../utils/open_link.dart';
+import '../utils/safe_padding.dart';
 
 /// Form for a hand-entered job. It is saved as pending and appears in the feed
 /// only after an admin or moderator approves it.
@@ -105,7 +106,7 @@ class _AddJobScreenState extends State<AddJobScreen> {
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: safeBodyPadding(context, amount: 16),
           children: [
             TextFormField(
               controller: _title,

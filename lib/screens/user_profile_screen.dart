@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../l10n/strings.dart';
 import '../providers/user_profile_provider.dart';
+import '../utils/safe_padding.dart';
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
@@ -70,7 +71,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(s.myProfile)),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: safeBodyPadding(context, amount: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

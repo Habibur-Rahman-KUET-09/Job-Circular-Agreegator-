@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../l10n/strings.dart';
 import '../providers/notification_provider.dart';
+import '../utils/safe_padding.dart';
 
 class NotificationCenterScreen extends StatefulWidget {
   const NotificationCenterScreen({super.key});
@@ -85,7 +86,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
             )
           : ListView.builder(
               itemCount: notifications.length,
-              padding: const EdgeInsets.all(8),
+              padding: safeBodyPadding(context, amount: 8),
               itemBuilder: (context, index) {
                 final notification = notifications[index];
                 return NotificationTile(

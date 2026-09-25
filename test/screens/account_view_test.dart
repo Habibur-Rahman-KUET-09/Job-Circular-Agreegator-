@@ -10,9 +10,10 @@ Future<(LocaleProvider, List<String>)> _pump(
   bool admin = false,
   bool recruiter = false,
   bool passwordUser = true,
+  Size physicalSize = const Size(1080, 4000),
 }) async {
   SharedPreferences.setMockInitialValues({});
-  tester.view.physicalSize = const Size(1080, 4000);
+  tester.view.physicalSize = physicalSize;
   tester.view.devicePixelRatio = 2.5;
   addTearDown(tester.view.reset);
   final locale = LocaleProvider();
@@ -95,5 +96,17 @@ void main() {
       await tester.tap(find.text(label));
     }
     expect(taps, ['profile', 'saved', 'applications', 'review', 'addJob', 'password', 'how', 'sop', 'delete', 'logout']);
+  });
+
+  testWidgets('logout stays above the system navigation bar', (tester) async {
+    tester.view.padding = const FakeViewPadding(bottom: 120);
+    await _pump(tester, admin: true, physicalSize: const Size(1080, 1920));
+
+    await tester.drag(find.byType(ListView), const Offset(0, -3000));
+    await tester.pumpAndSettle();
+
+    final screenHeight = tester.view.physicalSize.height / tester.view.devicePixelRatio;
+    final navBarHeight = 120 / tester.view.devicePixelRatio;
+    expect(tester.getBottomLeft(find.text('Logout')).dy, lessThanOrEqualTo(screenHeight - navBarHeight));
   });
 }

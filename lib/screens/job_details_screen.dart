@@ -6,6 +6,7 @@ import '../utils/open_link.dart';
 import '../models/job.dart';
 import '../providers/application_provider.dart';
 import '../providers/saved_job_provider.dart';
+import '../utils/safe_padding.dart';
 
 class JobDetailsScreen extends StatefulWidget {
   final Job job;
@@ -53,7 +54,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: safeBodyPadding(context, amount: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

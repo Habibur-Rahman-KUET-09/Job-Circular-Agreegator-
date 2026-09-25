@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../l10n/locale_provider.dart';
 import '../l10n/strings.dart';
+import '../utils/safe_padding.dart';
 
 const sopUrl = 'https://habibur-rahman-kuet-09.github.io/Job-Circular-Agreegator-/sop.html';
 
@@ -71,7 +72,7 @@ class AccountView extends StatelessWidget {
       body: AbsorbPointer(
         absorbing: busy,
         child: ListView(
-          padding: const EdgeInsets.all(12),
+          padding: safeBodyPadding(context, amount: 12),
           children: [
             _AccountTile(
               icon: Icons.person_outline,
